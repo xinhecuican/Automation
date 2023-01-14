@@ -3,15 +3,25 @@ package tech.xinhecuican.automation.manager;
 import java.util.ArrayList;
 import java.util.List;
 
+import tech.xinhecuican.automation.model.Operation;
 import tech.xinhecuican.automation.model.Storage;
 
 public class OperationManager {
     private List<Integer> readyDelete;
-    private List<OperationDeleteListener> listeners;
+    private List<OperationListener> listeners;
+    private static OperationManager _instance = null;
 
-    public interface OperationDeleteListener
+    public static OperationManager instance(){
+        if(_instance == null)
+            _instance = new OperationManager();
+        return _instance;
+    }
+
+    public static interface OperationListener
     {
-        void onOperationDelete(List<Integer> pos);
+        default void onOperationDelete(List<Integer> pos){}
+        default void onOperationAdd(Operation operation){}
+        default void onPackageChange(String[] packages){}
     }
 
     public OperationManager()
@@ -20,10 +30,11 @@ public class OperationManager {
         listeners = new ArrayList<>();
     }
 
-    public void addDeleteListener(OperationDeleteListener listener)
+    public void addListener(OperationListener listener)
     {
         listeners.add(listener);
     }
+    public void removeListener(OperationListener listener){listeners.remove(listener);}
 
     public void cancelDelete()
     {
@@ -32,10 +43,48 @@ public class OperationManager {
 
     public void delete()
     {
-        Storage.instance().deleteOperation(readyDelete);
-        for(OperationDeleteListener listener : listeners)
+        int oldLength = Storage.instance().getOperationPackageNames().length;
+        Storage.instance().removeActivity(readyDelete);
+        for(OperationListener listener : listeners)
             listener.onOperationDelete(readyDelete);
+        Storage.instance().deleteOperation(readyDelete);
+        if(Storage.instance().removePackageName(oldLength)){
+            for(OperationListener listener : listeners)
+                listener.onPackageChange(Storage.instance().getOperationPackageNames());
+        }
         readyDelete.clear();
+    }
+
+    public void append(Operation operation){
+        Storage.instance().addOperation(operation);
+        Storage.instance().addActivity(operation);
+        if(Storage.instance().addPackageName(operation)){
+            for(OperationListener listener : listeners)
+                listener.onPackageChange(Storage.instance().getOperationPackageNames());
+        }
+        for(OperationListener listener : listeners)
+            listener.onOperationAdd(operation);
+    }
+
+    public void change(Operation operation, int index){
+        boolean activityChange = !operation.getActivityName().equals(
+                Storage.instance().getOperation(index).getActivityName());
+        boolean packageChange = !operation.getPackageName().equals(
+                Storage.instance().getOperation(index).getPackageName());
+        if(activityChange)
+            Storage.instance().removeActivity(Storage.instance().getOperation(index).getActivityName());
+        if(packageChange)
+            Storage.instance().removePackageName(Storage.instance().getOperationPackageNames().length);
+        Storage.instance().setOperation(index, operation);
+        if(packageChange)
+            Storage.instance().addPackageName(operation);
+        if(activityChange)
+            Storage.instance().addActivity(operation);
+        if(packageChange){
+            for(OperationListener listener : listeners){
+                listener.onPackageChange(Storage.instance().getOperationPackageNames());
+            }
+        }
     }
 
     public void addDelete(int pos)
@@ -53,5 +102,17 @@ public class OperationManager {
                 break;
             }
         }
+    }
+
+    public int getSearchPostion(String text){
+        int index = 0;
+        for(Operation operation : Storage.instance().getOperations()){
+            if(operation.getName().contains(text))
+                return index;
+            else if(operation.getActivityName().contains(text))
+                return index;
+            index++;
+        }
+        return -1;
     }
 }

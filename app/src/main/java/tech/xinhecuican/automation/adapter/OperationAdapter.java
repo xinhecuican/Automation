@@ -12,11 +12,11 @@ import java.util.List;
 
 import tech.xinhecuican.automation.OperationActivity;
 import tech.xinhecuican.automation.R;
+import tech.xinhecuican.automation.listener.OperationListenerAdapter;
 import tech.xinhecuican.automation.manager.OperationManager;
 import tech.xinhecuican.automation.model.Operation;
 
-public class OperationAdapter extends RecyclerAdapter<Operation> implements RecyclerAdapter.OnItemClickListener,
-    OperationManager.OperationDeleteListener{
+public class OperationAdapter extends RecyclerAdapter<Operation>  implements RecyclerAdapter.OnItemClickListener {
     private AppCompatActivity parent;
     private OperationManager manager;
 
@@ -25,14 +25,14 @@ public class OperationAdapter extends RecyclerAdapter<Operation> implements Recy
         super(datas);
         setOnItemClickListener(this);
         this.parent = parent;
-        manager = new OperationManager();
-        manager.addDeleteListener(this);
-    }
-
-    @Override
-    public void onOperationDelete(List<Integer> pos) {
-        for(int index : pos)
-            notifyItemRemoved(index);
+        manager = OperationManager.instance();
+        manager.addListener(new OperationListenerAdapter(){
+            @Override
+            public void onOperationDelete(List<Integer> pos) {
+                for(int index : pos)
+                    notifyItemRemoved(index);
+            }
+        });
     }
 
     private class RadioClickListener implements View.OnClickListener{
@@ -78,6 +78,8 @@ public class OperationAdapter extends RecyclerAdapter<Operation> implements Recy
         name.setText(data.getName());
         TextView operationCount = (TextView) view.findViewById(R.id.operation_number);
         operationCount.setText(String.valueOf(data.getModelCount()));
+        TextView activityName = (TextView) view.findViewById(R.id.operation_activity_name);
+        activityName.setText(data.getActivityName());
         TextView time = (TextView) view.findViewById(R.id.operation_time);
         time.setText(String.valueOf(data.getDateEllipse())
                 .concat(view.getContext().getString(R.string.day_before)));
@@ -92,7 +94,7 @@ public class OperationAdapter extends RecyclerAdapter<Operation> implements Recy
         Intent intent = new Intent(parent, OperationActivity.class);
         intent.putExtra("operation", mDatas.get(position));
         intent.putExtra("index", position);
-        parent.startActivity(intent);
+        parent.startActivityForResult(intent, 0);
     }
 
     @Override

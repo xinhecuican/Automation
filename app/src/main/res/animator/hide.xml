@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <objectAnimator
+        android:propertyName="alpha"
+        android:duration="@integer/animation_duration"
+        android:shareInterpolator="@android:anim/decelerate_interpolator"
+        android:valueFrom="1.0"
+        android:valueTo="0.0" />
+
+    <objectAnimator
+        android:duration="@integer/animation_duration"
+        android:shareInterpolator="@android:anim/decelerate_interpolator"
+        android:valueFrom="100"
+        android:valueTo="0"/>
+</set>

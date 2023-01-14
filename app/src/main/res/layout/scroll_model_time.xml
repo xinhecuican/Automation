@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/model_setting"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/stop_cond"
+        android:textSize="24sp" />
+
+    <RadioGroup
+        android:id="@+id/scroll_cond_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/scroll_time_cond"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/scroll_time_cond" />
+
+        <RadioButton
+            android:id="@+id/scroll_end_cond"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/end_cond" />
+
+        <RadioButton
+            android:id="@+id/scroll_widget_cond"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/scroll_widget_cond" />
+    </RadioGroup>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/scroll_time_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:digits='1234567890'
+            android:hint="@string/scroll_time" />
+    </com.google.android.material.textfield.TextInputLayout>
+</LinearLayout>

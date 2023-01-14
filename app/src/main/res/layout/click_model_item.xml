@@ -6,7 +6,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal">
 
         <TextView
@@ -28,47 +28,4 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:visibility="invisible">
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/click_model_x"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:digits="1234567890"
-                android:hint="x" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/click_model_y"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:digits="1234567890"
-                android:hint="y" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/click_model_repeat"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:digits="1234567890"
-                android:hint="@string/repeat_times" />
-        </com.google.android.material.textfield.TextInputLayout>
-    </LinearLayout>
 </LinearLayout>
