@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/model_setting"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:visibility="visible">
 
     <TextView
         android:layout_width="match_parent"
@@ -56,6 +58,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center_vertical"
+            android:maxWidth="100dp"
+            android:maxLines="3"
             android:text="TextView" />
 
         <ImageButton
@@ -71,15 +75,50 @@
 
     </LinearLayout>
 
-    <com.google.android.material.textfield.TextInputLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/scroll_widget_stop_text"
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:hint="@string/stop_text" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:layout_weight="0"
+            android:gravity="center"
+            android:text="@string/stop_text" />
 
+        <EditText
+            android:id="@+id/scroll_widget_stop_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="@string/scroll_time"
+            android:inputType="numberDecimal"
+            android:minHeight="48dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:gravity="center"
+            android:text="@string/delay" />
+
+        <EditText
+            android:id="@+id/model_delay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="@string/scroll_time"
+            android:inputType="numberDecimal"
+            android:minHeight="48dp" />
+    </LinearLayout>
 </LinearLayout>

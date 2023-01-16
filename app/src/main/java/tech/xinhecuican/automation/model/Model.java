@@ -4,10 +4,18 @@ import android.accessibilityservice.AccessibilityService;
 
 import java.io.Serializable;
 
-public abstract class Model implements Serializable, Runnable{
-    protected AccessibilityService service;
+public abstract class Model implements Serializable, Runnable {
+    protected transient AccessibilityService service;
     protected int repeatTimes;
     protected int delay;
+    private transient boolean isShowDetail;
+
+    Model(){
+        isShowDetail = false;
+        delay = 0;
+        repeatTimes = 1;
+        service = null;
+    }
 
     public void setService(AccessibilityService service){
         this.service = service;
@@ -31,5 +39,13 @@ public abstract class Model implements Serializable, Runnable{
 
     public void setDelay(int delay) {
         this.delay = delay;
+    }
+
+    public boolean isShowDetail() {
+        return isShowDetail;
+    }
+
+    public void setShowDetail(boolean showDetail) {
+        isShowDetail = showDetail;
     }
 }

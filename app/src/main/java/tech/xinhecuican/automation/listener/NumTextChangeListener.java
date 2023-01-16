@@ -2,13 +2,12 @@ package tech.xinhecuican.automation.listener;
 
 import android.text.Editable;
 import android.text.TextWatcher;
-
-import com.google.android.material.textfield.TextInputEditText;
+import android.widget.EditText;
 
 public abstract class NumTextChangeListener implements TextWatcher {
-    TextInputEditText editText;
+    EditText editText;
 
-    public NumTextChangeListener(TextInputEditText edit){
+    public NumTextChangeListener(EditText edit){
         editText = edit;
     }
 
@@ -22,6 +21,8 @@ public abstract class NumTextChangeListener implements TextWatcher {
     @Override
     public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
         String s = String.valueOf(editText.getText());
+        if(s.equals(""))
+            return;
         if (!s.trim().substring(0).equals(".")
                 &&Integer.parseInt(s)<1) {
             editText.setText("1");
@@ -31,6 +32,8 @@ public abstract class NumTextChangeListener implements TextWatcher {
 
     @Override
     public void afterTextChanged(Editable editable) {
+        if(editable.toString().equals(""))
+            return;
         onNumInput(Integer.parseInt(editable.toString()));
     }
 }

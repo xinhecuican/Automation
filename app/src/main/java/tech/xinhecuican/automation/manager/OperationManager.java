@@ -53,6 +53,7 @@ public class OperationManager {
                 listener.onPackageChange(Storage.instance().getOperationPackageNames());
         }
         readyDelete.clear();
+        Storage.instance().save();
     }
 
     public void append(Operation operation){
@@ -64,6 +65,7 @@ public class OperationManager {
         }
         for(OperationListener listener : listeners)
             listener.onOperationAdd(operation);
+        Storage.instance().save();
     }
 
     public void change(Operation operation, int index){
@@ -73,18 +75,17 @@ public class OperationManager {
                 Storage.instance().getOperation(index).getPackageName());
         if(activityChange)
             Storage.instance().removeActivity(Storage.instance().getOperation(index).getActivityName());
-        if(packageChange)
-            Storage.instance().removePackageName(Storage.instance().getOperationPackageNames().length);
+        int packageLength = Storage.instance().getOperationPackageNames().length;
         Storage.instance().setOperation(index, operation);
-        if(packageChange)
-            Storage.instance().addPackageName(operation);
-        if(activityChange)
-            Storage.instance().addActivity(operation);
+        Storage.instance().addActivity(operation);
         if(packageChange){
+            Storage.instance().removePackageName(packageLength);
+            Storage.instance().addPackageName(operation);
             for(OperationListener listener : listeners){
                 listener.onPackageChange(Storage.instance().getOperationPackageNames());
             }
         }
+        Storage.instance().save();
     }
 
     public void addDelete(int pos)

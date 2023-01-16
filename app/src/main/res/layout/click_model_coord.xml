@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:visibility="gone">
+    android:visibility="visible">
 
 
     <RadioGroup
@@ -79,27 +79,50 @@
 
     </LinearLayout>
 
-    <com.google.android.material.textfield.TextInputLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
-        <com.google.android.material.textfield.TextInputEditText
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:gravity="center"
+            android:text="@string/repeat_times" />
+
+        <EditText
             android:id="@+id/click_model_repeat"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:digits="1234567890"
-            android:hint="@string/repeat_times" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="@string/scroll_time"
+            android:inputType="numberDecimal"
+            android:minHeight="48dp" />
+    </LinearLayout>
 
-    <com.google.android.material.textfield.TextInputLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/click_model_delay"
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:digits="1234567890"
-            android:hint="@string/delay" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:layout_weight="0"
+            android:gravity="center"
+            android:text="@string/delay" />
+
+        <EditText
+            android:id="@+id/model_delay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="@string/scroll_time"
+            android:inputType="numberDecimal"
+            android:minHeight="48dp" />
+    </LinearLayout>
 </LinearLayout>

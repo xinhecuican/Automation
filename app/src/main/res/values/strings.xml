@@ -69,4 +69,13 @@
     <string name="stop_text">stop text</string>
     <string name="scroll">scroll</string>
     <string name="new_scroll_model">new scroll model</string>
+    <string name="import_setting">import setting</string>
+    <string name="export_setting">export setting</string>
+    <string name="reset_setting">reset setting</string>
+    <string name="delete_model">delete model</string>
+    <string name="new_model_group">new model group</string>
+    <string name="window_state">window state</string>
+    <string name="new_delay_model">new delay model</string>
+    <string name="hide_from_tray">hide from tray</string>
+    <string name="hide_tray_info">hide tray info</string>
 </resources>

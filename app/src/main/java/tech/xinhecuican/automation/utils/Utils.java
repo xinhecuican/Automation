@@ -2,19 +2,26 @@ package tech.xinhecuican.automation.utils;
 
 import static android.content.Context.ACTIVITY_SERVICE;
 
+import android.accessibilityservice.AccessibilityService;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.annotation.RequiresApi;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import tech.xinhecuican.automation.model.WidgetDescription;
 
 public class Utils {
 
@@ -116,5 +123,38 @@ public class Utils {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static AccessibilityNodeInfo findWidgetByDescription(AccessibilityService service, WidgetDescription description){
+        List<AccessibilityNodeInfo> nodes = new ArrayList<>();
+        nodes.add(service.getRootInActiveWindow());
+        int index = 0;
+        boolean isFind = false;
+        while(index < nodes.size()){
+            AccessibilityNodeInfo node = nodes.get(index++);
+            if(node != null){
+                CharSequence cId = node.getViewIdResourceName();
+                CharSequence cClass = node.getClassName();
+                CharSequence cText = node.getText();
+                boolean considerId = !description.id.equals("");
+                boolean considerClass = !description.className.equals("");
+                boolean considertext = !description.text.equals("");
+                boolean idEqual = !considerId || cId != null && description.id.equals(cId.toString());
+                boolean classEqual = !considerClass || cClass != null && description.className.equals(cClass.toString());
+                boolean textEqual = !considertext || cText != null && description.text.equals(cText.toString());
+                if(idEqual && classEqual && textEqual)
+                    return node;
+            }
+
+            for(int i = 0; i< Objects.requireNonNull(node).getChildCount(); i++){
+                nodes.add(node.getChild(i));
+            }
+        }
+        Debug.info("can't find widget", 1);
+        return null;
+    }
+
+    public static int dp2px(float dpValue) {
+        return (int) (0.5f + dpValue * Resources.getSystem().getDisplayMetrics().density);
     }
 }

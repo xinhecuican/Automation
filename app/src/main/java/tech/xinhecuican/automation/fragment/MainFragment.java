@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -99,6 +100,7 @@ public class MainFragment extends Fragment {
                 else{
                     Storage.instance().setOpen(true);
                     Intent serviceIntent = new Intent(context, AccessService.class);
+                    serviceIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startService(serviceIntent);
                 }
             }
@@ -124,7 +126,12 @@ public class MainFragment extends Fragment {
                 }
                 AccessService service = AccessService.getInstance();
                 if(service != null){
-                    service.showSuspendball();
+                    service.showSuspendball(new AccessService.SuspendCloseListener() {
+                        @Override
+                        public void onSuspendClose() {
+                            MainFragment.this.notify();
+                        }
+                    });
                 }
                 Storage.instance().setShowBall(true);
             }
@@ -134,6 +141,16 @@ public class MainFragment extends Fragment {
                 if(service != null){
                     service.removeSuspendView();
                 }
+            }
+        });
+
+        Switch switchTray = (Switch)view.findViewById(R.id.switch_hide_tray);
+        switchTray.setChecked(Storage.instance().isHideTray());
+        switchTray.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Storage.instance().setHideTray(isChecked);
+                System.exit(1);
             }
         });
         return view;

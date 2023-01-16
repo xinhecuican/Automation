@@ -7,10 +7,9 @@ import android.os.Build;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import tech.xinhecuican.automation.utils.Debug;
+import tech.xinhecuican.automation.utils.Utils;
 
 public class ClickModel extends Model implements Serializable {
     private int x;
@@ -22,6 +21,7 @@ public class ClickModel extends Model implements Serializable {
     public static final int CLICK_MODE_POSITION = 1;
 
     public ClickModel(){
+        super();
         x = 0;
         y = 0;
         repeatTimes = 1;
@@ -84,36 +84,15 @@ public class ClickModel extends Model implements Serializable {
 
     @Override
     public void run() {
+        Debug.info("click run", 0);
         if(mode == CLICK_MODE_WIDGET){
-            List<AccessibilityNodeInfo> nodes = new ArrayList<>();
-            nodes.add(service.getRootInActiveWindow());
-            int index = 0;
-            boolean isFind = false;
-            while(index < nodes.size()){
-                AccessibilityNodeInfo node = nodes.get(index++);
-                if(node != null){
-                    CharSequence cId = node.getViewIdResourceName();
-                    CharSequence cClass = node.getClassName();
-                    CharSequence cContent = node.getContentDescription();
-                    if(cId != null && cClass != null && widgetDescription.id.equals(cId.toString()) &&
-                    widgetDescription.className.equals(cClass.toString()))
-                        isFind = true;
-                    if(cClass != null && cContent != null && widgetDescription.className.equals(cClass.toString()) &&
-                            widgetDescription.description.equals(cContent.toString()))
-                        isFind = true;
-                }
-
-                if(isFind){
-                    boolean clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                    if(!clicked){
-                        Rect rect = new Rect();
-                        node.getBoundsInScreen(rect);
-                        click(rect.centerX(), rect.centerY());
-                    }
-                    break;
-                }
-                for(int i=0; i<node.getChildCount(); i++){
-                    nodes.add(node.getChild(i));
+            AccessibilityNodeInfo node = Utils.findWidgetByDescription(service, widgetDescription);
+            if(node != null){
+                boolean clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                if(!clicked){
+                    Rect rect = new Rect();
+                    node.getBoundsInScreen(rect);
+                    click(rect.centerX(), rect.centerY());
                 }
             }
         }
@@ -130,9 +109,9 @@ public class ClickModel extends Model implements Serializable {
                     addStroke(new GestureDescription.StrokeDescription(path, 0, 40));
             boolean result = service.dispatchGesture(builder.build(), null, null);
             if(!result)
-                Debug.info("click x: " + x + " y: " + y + " error");
+                Debug.info("click x: " + x + " y: " + y + " error", 0);
         } else {
-            Debug.error("SDK can't support click");
+            Debug.error("SDK can't support click", 0);
         }
     }
 }

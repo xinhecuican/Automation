@@ -12,6 +12,7 @@ import android.widget.SearchView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,6 +21,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import tech.xinhecuican.automation.MainActivity;
 import tech.xinhecuican.automation.OperationActivity;
 import tech.xinhecuican.automation.R;
+import tech.xinhecuican.automation.adapter.ItemTouchHelperCallback;
 import tech.xinhecuican.automation.adapter.OperationAdapter;
 import tech.xinhecuican.automation.manager.OperationManager;
 import tech.xinhecuican.automation.model.Operation;
@@ -78,7 +80,10 @@ public class ProfileFragment extends Fragment {
                 }
             }
         } ;
+        ItemTouchHelper.Callback itemTouchHelperCallback = new ItemTouchHelperCallback(adapter);
+        ItemTouchHelper touchHelper = new ItemTouchHelper(itemTouchHelperCallback);
         recyclerView.setAdapter(adapter);
+        touchHelper.attachToRecyclerView(recyclerView);
 
         FloatingActionButton floatingActionButton = (FloatingActionButton) mainView.findViewById(R.id.new_operation);
         floatingActionButton.setOnClickListener(view1 -> {

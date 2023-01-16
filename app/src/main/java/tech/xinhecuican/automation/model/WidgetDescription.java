@@ -27,6 +27,7 @@ public class WidgetDescription implements Externalizable {
         text = "";
         rect = new Rect();
         isClickable = false;
+        isScrollable = false;
     }
 
     public WidgetDescription(WidgetDescription other) {
@@ -42,7 +43,7 @@ public class WidgetDescription implements Externalizable {
     }
 
     public String toString(){
-        return "click:".concat((this.isClickable ? "true scroll" : "false scroll"))
+        return "click:".concat((this.isClickable ? "true scroll " : "false scroll "))
                 .concat(this.isScrollable ? "true" : "false")
                 .concat(" id:").concat(this.id).concat(" desc:").concat(this.description)
                 .concat(" text:").concat(this.text);
@@ -60,6 +61,7 @@ public class WidgetDescription implements Externalizable {
         out.writeInt(rect.bottom);
         out.writeInt(rect.right);
         out.writeBoolean(isClickable);
+        out.writeBoolean(isScrollable);
     }
 
     @Override
@@ -74,6 +76,7 @@ public class WidgetDescription implements Externalizable {
         int bottom = in.readInt();
         int right = in.readInt();
         isClickable = in.readBoolean();
+        isScrollable = in.readBoolean();
         rect = new Rect(left, top, right, bottom);
     }
 }

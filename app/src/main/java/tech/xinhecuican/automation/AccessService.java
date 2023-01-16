@@ -4,8 +4,8 @@ import android.accessibilityservice.AccessibilityServiceInfo;
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Binder;
@@ -29,11 +29,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 
-import tech.xinhecuican.automation.listener.OperationListenerAdapter;
-import tech.xinhecuican.automation.manager.OperationManager;
 import tech.xinhecuican.automation.model.CoordinateDescription;
 import tech.xinhecuican.automation.model.Operation;
 import tech.xinhecuican.automation.model.Storage;
@@ -44,18 +45,18 @@ import tech.xinhecuican.automation.utils.Utils;
 public class AccessService extends android.accessibilityservice.AccessibilityService {
     private WidgetDescription saveWidgetDescription;
     private CoordinateDescription saveCoordinateDescription;
-    private List<WindowInfoResultListener> listeners;
-    private List<SuspendCloseListener> suspendCloseListeners;
     private String currentPackageName, currentClassName;
     private ScheduledExecutorService scheduler;
     private Set<String> IMEApp;
-    private int modelIndex;
     private static AccessService _instance;
     private boolean isShowDialog;
     private Operation currentOperation;
     private PackageManager packageManager;
     private Set<String> packages;
+    private String[] totalPackageNames;
     private View suspendView;
+    private List<ScheduledFuture> futures;
+    private LinkedBlockingDeque<WindowStateChangeListener> windowStateChangeLisnters;
 
     public static AccessService getInstance(){
         return _instance;
@@ -63,6 +64,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
 
     @Override
     public void onServiceConnected(){
+        futures = new CopyOnWriteArrayList<>();
         scheduler = Executors.newSingleThreadScheduledExecutor();
         IMEApp = new HashSet<>();
         List<InputMethodInfo> inputMethodInfoList = ((InputMethodManager)
@@ -70,31 +72,35 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
         for (InputMethodInfo e : inputMethodInfoList) {
             IMEApp.add(e.getPackageName());
         }
-        listeners = new ArrayList<>();
-        suspendCloseListeners = new ArrayList<>();
         _instance = this;
         currentPackageName = "";
         currentClassName = "";
         isShowDialog = false;
-        OperationManager.instance().addListener(new OperationListenerAdapter() {
-            @Override
-            public void onPackageChange(String[] packages) {
-                AccessibilityServiceInfo info = getServiceInfo();
-                info.packageNames = packages;
-                setServiceInfo(info);
-            }
-        });
+        windowStateChangeLisnters = new LinkedBlockingDeque<WindowStateChangeListener>();
+//        OperationManager.instance().addListener(new OperationListenerAdapter() {
+//            @Override
+//            public void onPackageChange(String[] packages) {
+//                AccessibilityServiceInfo info = getServiceInfo();
+//                info.packageNames = packages;
+//                setServiceInfo(info);
+//                currentClassName = "";
+//                currentPackageName = "";
+//            }
+//        });
 
         packages = new HashSet<>();
         packageManager = getPackageManager();
         Intent intent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
-        List<PackageInfo> infos = packageManager.getInstalledPackages(0);
-        for (PackageInfo e : infos) {
-            packages.add(e.packageName);
+        List<ResolveInfo> ResolveInfoList = packageManager.queryIntentActivities(intent, PackageManager.MATCH_ALL);
+        if(ResolveInfoList != null) {
+            for (ResolveInfo e : ResolveInfoList) {
+                packages.add(e.activityInfo.packageName);
+            }
         }
+        totalPackageNames = packages.toArray(new String[0]);
 
         AccessibilityServiceInfo info = getServiceInfo();
-        info.packageNames = Storage.instance().getOperationPackageNames();
+        info.packageNames = totalPackageNames;
         setServiceInfo(info);
     }
 
@@ -114,20 +120,23 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
         if(packageNameChar == null || classNameChar == null)return;
         String packageName = packageNameChar.toString();
         String className = classNameChar.toString();
-        Debug.info(packageName);
+        Debug.info(packageName, 0);
         try{
             switch(event.getEventType())
             {
                 case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
-                    if(IMEApp.contains(packageName))
-                        break;
+                    if(windowStateChangeLisnters.size() != 0){
+                        WindowStateChangeListener listener = windowStateChangeLisnters.poll();
+                        if(listener != null)
+                            listener.onWindowStateChange();
+                    }
                     boolean isActivity = !className.startsWith("android.") && !className.startsWith("androidx.");
                     if(!currentPackageName.equals(packageName)){
                         if(isActivity) {
                             currentPackageName = packageName;
                             currentClassName = className;
                             currentOperation = Storage.instance().findOperationByActivity(currentClassName);
-                            if(currentOperation.isAuto())
+                            if(currentOperation != null && currentOperation.isAuto())
                                 startProcess();
                         }
                     }
@@ -136,7 +145,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
                             if(!currentClassName.equals(className)){
                                 currentClassName = className;
                                 currentOperation = Storage.instance().findOperationByActivity(currentClassName);
-                                if(currentOperation.isAuto())
+                                if(currentOperation != null && currentOperation.isAuto())
                                     startProcess();
                             }
                         }
@@ -145,29 +154,21 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
 
             }
         }catch(Throwable e){
-            Debug.error(e.getMessage());
+            Debug.error(e.getMessage(), 0);
+            e.printStackTrace();
         }
     }
 
     @Override
     public void onInterrupt() {
-        Debug.info("service stop");
+        Debug.info("service stop", 0);
         _instance = null;
         stopProcess();
     }
 
-    public void setDescription(int index, CoordinateDescription coordinateDescription, WidgetDescription widgetDescription){
-        modelIndex = index;
+    public void setDescription(CoordinateDescription coordinateDescription, WidgetDescription widgetDescription){
         saveCoordinateDescription = coordinateDescription;
         saveWidgetDescription = widgetDescription;
-    }
-
-    public void addWindowInfoResultListener(WindowInfoResultListener listener){
-        listeners.add(listener);
-    }
-
-    public void removeWindowInfoResultListener(WindowInfoResultListener listener){
-        listeners.remove(listener);
     }
 
     public void restartProcess(){
@@ -179,8 +180,10 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
         if(scheduler.isShutdown())
             scheduler = Executors.newSingleThreadScheduledExecutor();
         try {
-            if (currentOperation != null)
-                currentOperation.startProcess(_instance, scheduler);
+            futures.removeIf(future -> future.isDone() || future.isCancelled());
+            if (currentOperation != null && futures.size() == 0) {
+                futures.addAll(currentOperation.startProcess(_instance, scheduler));
+            }
         }
         catch (Exception e){
             e.printStackTrace();
@@ -188,10 +191,10 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
     }
 
     private void stopProcess(){
-        if(!scheduler.isTerminated()){
-            scheduler.shutdown();
-            scheduler = Executors.newSingleThreadScheduledExecutor();
+        for(ScheduledFuture future : futures){
+            future.cancel(true);
         }
+        futures.clear();
     }
 
     private void findAllNode(List<AccessibilityNodeInfo> roots, List<AccessibilityNodeInfo> list, String indent) {
@@ -213,7 +216,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    public void showSuspendball(){
+    public void showSuspendball(SuspendCloseListener listener){
         final WindowManager windowManager = (WindowManager) getSystemService(android.accessibilityservice.AccessibilityService.WINDOW_SERVICE);
         final DisplayMetrics metrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getRealMetrics(metrics);
@@ -264,9 +267,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
             windowManager.removeViewImmediate(suspendView);
             suspendView = null;
             Storage.instance().setShowBall(false);
-            for(SuspendCloseListener listener : suspendCloseListeners){
-                listener.onSuspendClose();
-            }
+            listener.onSuspendClose();
             return true;
         });
         button.setOnClickListener(v -> {
@@ -283,14 +284,29 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    public void showActivityCustomizationDialog() {
+    public void showActivityCustomizationDialog(boolean isOnlyScroll, WindowInfoResultListener listener) {
         if(isShowDialog)
             return;
 
-        // 暂时允许接受所有包
-        AccessibilityServiceInfo info = getServiceInfo();
-        info.packageNames = packages.toArray(new String[0]);
-        setServiceInfo(info);
+//        // 暂时允许接受所有包
+//        AccessibilityServiceInfo info = getServiceInfo();
+//        info.packageNames = packages.toArray(new String[0]);
+//        setServiceInfo(info);
+//        AccessibilityNodeInfo activeNode = getRootInActiveWindow();
+//        currentPackageName = activeNode.getPackageName() != null ? activeNode.getPackageName().toString() : "";
+//        CharSequence cClass = activeNode.getClassName();
+//        if(cClass != null){
+//            String rootClassName = cClass.toString();
+//            if(!rootClassName.startsWith("android.") && !rootClassName.startsWith("androidx.")){
+//                currentClassName = rootClassName;
+//            }
+//            else{
+//                currentClassName = "";
+//            }
+//        }
+//        else{
+//            currentClassName = "";
+//        }
         // show activity customization window
         final WindowManager windowManager = (WindowManager) getSystemService(android.accessibilityservice.AccessibilityService.WINDOW_SERVICE);
         final DisplayMetrics metrics = new DisplayMetrics();
@@ -437,6 +453,14 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
                 roots.add(root);
                 ArrayList<AccessibilityNodeInfo> nodeList = new ArrayList<>();
                 findAllNode(roots, nodeList, "");
+                if(isOnlyScroll) {
+                    roots.clear();
+                    for (AccessibilityNodeInfo info1 : nodeList) {
+                        if (info1.isScrollable())
+                            roots.add(info1);
+                    }
+                    nodeList = roots;
+                }
                 Collections.sort(nodeList, (a, b1) -> {
                     Rect rectA = new Rect();
                     Rect rectB = new Rect();
@@ -537,20 +561,15 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
         exitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                for(WindowInfoResultListener listener : listeners)
-                {
-                    if(saveCoordinateDescription != null)
-                        listener.onCoordResult(modelIndex, saveCoordinateDescription);
-                    if(saveWidgetDescription != null)
-                        listener.onWidgetResult(modelIndex, saveWidgetDescription);
-                }
+                listener.onCoordResult(saveCoordinateDescription);
+                listener.onWidgetResult(saveWidgetDescription);
                 windowManager.removeViewImmediate(viewTarget);
                 windowManager.removeViewImmediate(viewCustomization);
                 windowManager.removeViewImmediate(imageTarget);
 
-                AccessibilityServiceInfo info1 = getServiceInfo();
-                info1.packageNames = Storage.instance().getOperationPackageNames();
-                setServiceInfo(info1);
+//                AccessibilityServiceInfo info1 = getServiceInfo();
+//                info1.packageNames = Storage.instance().getOperationPackageNames();
+//                setServiceInfo(info1);
                 isShowDialog = false;
             }
         });
@@ -562,21 +581,24 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
         isShowDialog = true;
     }
 
-    public void addSuspendCloseListener(SuspendCloseListener listener){
-        suspendCloseListeners.add(listener);
-    }
-
-    public void removeSuspendCloseListener(SuspendCloseListener listener){
-        suspendCloseListeners.remove(listener);
+    public void addWindowStateChangeListener(WindowStateChangeListener listener){
+        windowStateChangeLisnters.offer(listener);
     }
 
     public interface WindowInfoResultListener{
-        void onWidgetResult(int index, WidgetDescription description);
-        void onCoordResult(int index, CoordinateDescription description);
+        void onWidgetResult(WidgetDescription description);
+        void onCoordResult(CoordinateDescription description);
     }
 
     public interface SuspendCloseListener{
         void onSuspendClose();
+    }
+
+    /**
+     * 只会触发一次，之后该listener便会被移出队列
+     */
+    public interface WindowStateChangeListener {
+        void onWindowStateChange();
     }
 
     public class AccessibilityBinder extends Binder {

@@ -1,13 +1,17 @@
 package tech.xinhecuican.automation;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.RadioButton;
-import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -34,7 +38,7 @@ import tech.xinhecuican.automation.model.Storage;
 import tech.xinhecuican.automation.utils.ToastUtil;
 import tech.xinhecuican.automation.utils.Utils;
 
-public class MainActivity extends AppCompatActivity implements AccessService.SuspendCloseListener {
+public class MainActivity extends AppCompatActivity{
 
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
@@ -50,8 +54,11 @@ public class MainActivity extends AppCompatActivity implements AccessService.Sus
                 && Utils.isIgnoringBatteryOptimizations(this));
         if(Storage.instance().isOpen()) {
             Intent serviceIntent = new Intent(this, AccessService.class);
+            serviceIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startService(serviceIntent);
         }
+        ActivityManager manager = (ActivityManager) getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
+        manager.getAppTasks().get(0).setExcludeFromRecents(Storage.instance().isHideTray());
         realBack = false;
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -94,8 +101,6 @@ public class MainActivity extends AppCompatActivity implements AccessService.Sus
         });
 
         AccessService service = AccessService.getInstance();
-        if(service != null)
-            service.addSuspendCloseListener(this);
     }
 
     @Override
@@ -140,8 +145,6 @@ public class MainActivity extends AppCompatActivity implements AccessService.Sus
     @Override
     public void onDestroy() {
         AccessService service;
-        if((service = AccessService.getInstance()) != null)
-            service.removeSuspendCloseListener(this);
         super.onDestroy();
     }
 
@@ -191,8 +194,47 @@ public class MainActivity extends AppCompatActivity implements AccessService.Sus
     }
 
     @Override
-    public void onSuspendClose() {
-        Switch switchSuspend = (Switch)findViewById(R.id.switch_suspend);
-        switchSuspend.setChecked(Storage.instance().isShowBall());
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            View v = getCurrentFocus();
+            if (isShouldHideInput(v, ev)) {
+
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+            return super.dispatchTouchEvent(ev);
+        }
+        // 必不可少，否则所有的组件都不会有TouchEvent了
+        if (getWindow().superDispatchTouchEvent(ev)) {
+            return true;
+        }
+        return onTouchEvent(ev);
     }
+
+    public boolean isShouldHideInput(View v, MotionEvent event) {
+        if (v != null && (v instanceof EditText)) {
+            int[] leftTop = {0, 0};
+            //获取输入框当前的location位置
+            v.getLocationInWindow(leftTop);
+            int left = leftTop[0];
+            int top = leftTop[1];
+            int bottom = top + v.getHeight();
+            int right = left + v.getWidth();
+            if (event.getX() > left && event.getX() < right
+                    && event.getY() > top && event.getY() < bottom) {
+                // 点击的是输入框区域，保留点击EditText的事件
+                return false;
+            } else {
+                //使EditText触发一次失去焦点事件
+                v.setFocusable(false);
+//                v.setFocusable(true); //这里不需要是因为下面一句代码会同时实现这个功能
+                v.setFocusableInTouchMode(true);
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

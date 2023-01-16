@@ -1,20 +1,18 @@
 package tech.xinhecuican.automation.model;
 
-import android.accessibilityservice.AccessibilityService;
-
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledFuture;
 
+import tech.xinhecuican.automation.AccessService;
 import tech.xinhecuican.automation.utils.Debug;
 
 public class Operation implements Serializable {
     private String name;
-    private List<Model> models;
+    private ModelGroup model;
     private Long createDate;
     private String packageName;
     private String activityName;
@@ -23,7 +21,7 @@ public class Operation implements Serializable {
     public Operation(String name)
     {
         this.name = name;
-        this.models = new ArrayList<>();
+        this.model = new ModelGroup();
         this.createDate = new Date().getTime();
         packageName = "";
         activityName = "";
@@ -38,16 +36,13 @@ public class Operation implements Serializable {
         return name;
     }
 
-    public void setModels(List<Model> models) {
-        this.models = models;
-    }
 
     public List<Model> getModels() {
-        return models;
+        return model.getModels();
     }
 
     public int getModelCount(){
-        return models.size();
+        return model.getModels().size();
     }
 
     public int getDateEllipse() {
@@ -56,7 +51,7 @@ public class Operation implements Serializable {
     }
 
     public void addModel(Model model){
-        this.models.add(model);
+        this.model.addModel(model);
     }
 
     public String getActivityName() {
@@ -83,13 +78,13 @@ public class Operation implements Serializable {
         isAuto = auto;
     }
 
-    public void startProcess(AccessibilityService service, ScheduledExecutorService scheduler)
+    public List<ScheduledFuture> startProcess(AccessService service, ScheduledExecutorService scheduler)
     {
-        for(Model model : models) {
-            model.setService(service);
-            for(int i=0; i<model.getRepeatTimes(); i++)
-                scheduler.schedule(model, model.delay, TimeUnit.MILLISECONDS);
-        }
+        return model.startProcess(service, scheduler, 0);
+    }
+
+    public ModelGroup getRootModel(){
+        return this.model;
     }
 
     public CoordinateDescription generateCoordDescription(int index){
@@ -100,12 +95,12 @@ public class Operation implements Serializable {
         description.x = 0;
         description.y = 0;
         if(index != -1) {
-            Model model = models.get(index);
+            Model model = this.model.getModels().get(index);
             try {
                 description.x = (int) model.getClass().getMethod("getX").invoke(model);
                 description.y = (int) model.getClass().getMethod("getY").invoke(model);
             } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                Debug.error(e.getMessage());
+                Debug.error(e.getMessage(), 0);
             } finally {
                 return description;
             }
@@ -116,7 +111,7 @@ public class Operation implements Serializable {
 
     public WidgetDescription generateWidgetDescription(int index){
         if(index != -1) {
-            Model model = models.get(index);
+            Model model = this.model.getModels().get(index);
             if (model.needWidgetDescription()) {
                 try {
                     return (WidgetDescription) model.getClass().getMethod("getWidgetDescription").invoke(model);

@@ -8,14 +8,33 @@ import android.view.ViewGroup;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.Collections;
 import java.util.List;
 
-public abstract class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerAdapter.VH>{
+public abstract class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerAdapter.VH> implements ItemTouchHelperAdapter{
     protected List<T> mDatas;
     private RecyclerAdapter.OnItemClickListener onItemClickListener;
 
     public RecyclerAdapter(List<T> datas){
         this.mDatas = datas;
+    }
+
+    @Override
+    public void onItemSwapped(int fromPosition, int toPosition){
+        Collections.swap(mDatas, fromPosition, toPosition);
+        notifyItemMoved(fromPosition, toPosition);
+    }
+
+    @Override
+    public void onItemDeleted(int position){
+        mDatas.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    @Override
+    public void onItemDone(int position){
+        mDatas.remove(position);
+        notifyItemRemoved(position);
     }
 
     public interface OnItemClickListener {
@@ -33,6 +52,12 @@ public abstract class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerAd
      * @return 布局id
      */
     public abstract int getLayoutId(int viewType);
+
+    @Override
+    public int getItemViewType(int position) {
+        return 0;
+    }
+
 
     @Override
     public VH onCreateViewHolder(ViewGroup parent, int viewType) {

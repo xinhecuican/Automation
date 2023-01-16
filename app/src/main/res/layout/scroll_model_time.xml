@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/model_setting"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:visibility="visible">
 
     <TextView
         android:layout_width="match_parent"
@@ -36,15 +38,87 @@
             android:text="@string/scroll_widget_cond" />
     </RadioGroup>
 
-    <com.google.android.material.textfield.TextInputLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/scroll_time_input"
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="0"
+            android:gravity="center_vertical"
+            android:text="@string/widget"
+            android:textSize="24sp" />
+
+        <TextView
+            android:id="@+id/widget_info"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:maxWidth="100dp"
+            android:maxLines="3"
+            android:text="TextView" />
+
+        <ImageButton
+            android:id="@+id/widget_picker"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:digits='1234567890'
-            android:hint="@string/scroll_time" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:layout_weight="0"
+            android:background="#FFFFFF"
+            android:contentDescription="@string/button_more"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            app:srcCompat="@drawable/picker" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:gravity="center"
+            android:text="@string/scroll_time" />
+
+        <EditText
+            android:id="@+id/scroll_time_input"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="@string/scroll_time"
+            android:inputType="numberDecimal"
+            android:minHeight="48dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:gravity="center"
+            android:text="@string/delay" />
+
+        <EditText
+            android:id="@+id/model_delay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="@string/scroll_time"
+            android:inputType="numberDecimal"
+            android:minHeight="48dp" />
+    </LinearLayout>
 </LinearLayout>

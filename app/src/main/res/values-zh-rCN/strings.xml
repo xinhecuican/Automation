@@ -60,4 +60,13 @@
     <string name="stop_text">停止文本</string>
     <string name="scroll">滚动</string>
     <string name="new_scroll_model">新建滚动操作</string>
+    <string name="import_setting">导入配置</string>
+    <string name="export_setting">导出配置</string>
+    <string name="reset_setting">重置所有配置</string>
+    <string name="delete_model">删除操作</string>
+    <string name="new_model_group">新建操作组</string>
+    <string name="window_state">窗体状态</string>
+    <string name="new_delay_model">新建延时操作</string>
+    <string name="hide_from_tray">从任务列表中隐藏</string>
+    <string name="hide_tray_info">避免被清理操作删除</string>
 </resources>

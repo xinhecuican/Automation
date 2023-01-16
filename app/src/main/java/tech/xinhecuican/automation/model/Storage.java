@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import tech.xinhecuican.automation.utils.Utils;
@@ -23,6 +22,7 @@ public class Storage implements Serializable {
     private transient boolean isLoad;
     private transient boolean isShowBall;
     private boolean isOpen;
+    private boolean isHideTray;
     // 根据活动名查找活动
     private Map<String, Operation> activityChooser;
     private Set<String> operationPackageNames;
@@ -45,12 +45,11 @@ public class Storage implements Serializable {
     }
 
     public List<Operation> getOperations(){return operations;}
-    public void setOperations(List<Operation> operations){this.operations = operations;save();}
+    public void setOperations(List<Operation> operations){this.operations = operations;}
     public void addOperation(Operation operation){this.operations.add(operation);}
-    public void removeOperation(Operation operation){this.operations.remove(operation);save();}
+    public void removeOperation(Operation operation){this.operations.remove(operation);}
     public void setOperation(int index, Operation operation){
         operations.set(index, operation);
-        save();
     }
     public Operation getOperation(int index){
         if(index >= operationCount() || index < 0){
@@ -58,7 +57,7 @@ public class Storage implements Serializable {
         }
         return operations.get(index);
     }
-    public void removeOperation(int index){this.operations.remove(index);save();}
+    public void removeOperation(int index){this.operations.remove(index);}
     public int operationCount(){return this.operations.size();}
     public boolean isOpen() {
         return isOpen;
@@ -74,6 +73,15 @@ public class Storage implements Serializable {
 
     public void setShowBall(boolean showBall) {
         isShowBall = showBall;
+        save();
+    }
+
+    public boolean isHideTray() {
+        return isHideTray;
+    }
+
+    public void setHideTray(boolean hideTray) {
+        isHideTray = hideTray;
     }
 
     public void checkOpen(boolean open){
@@ -92,10 +100,7 @@ public class Storage implements Serializable {
     }
 
     public void addActivity(Operation operation){
-        if(!Objects.equals(operation.getActivityName(), "")){
-            activityChooser.put(operation.getActivityName(), operation);
-        }
-        save();
+        activityChooser.put(operation.getActivityName(), operation);
     }
 
     public boolean addPackageName(Operation operation){
