@@ -58,7 +58,11 @@ public class MainActivity extends AppCompatActivity{
             startService(serviceIntent);
         }
         ActivityManager manager = (ActivityManager) getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
-        manager.getAppTasks().get(0).setExcludeFromRecents(Storage.instance().isHideTray());
+        if(manager != null) {
+            List<ActivityManager.AppTask> tasks = manager.getAppTasks();
+            if(tasks != null && tasks.size() > 0)
+                tasks.get(0).setExcludeFromRecents(Storage.instance().isHideTray());
+        }
         realBack = false;
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());

@@ -24,15 +24,16 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
 import tech.xinhecuican.automation.model.CoordinateDescription;
@@ -40,13 +41,14 @@ import tech.xinhecuican.automation.model.Operation;
 import tech.xinhecuican.automation.model.Storage;
 import tech.xinhecuican.automation.model.WidgetDescription;
 import tech.xinhecuican.automation.utils.Debug;
+import tech.xinhecuican.automation.utils.DelayScheduler;
 import tech.xinhecuican.automation.utils.Utils;
 
 public class AccessService extends android.accessibilityservice.AccessibilityService {
     private WidgetDescription saveWidgetDescription;
     private CoordinateDescription saveCoordinateDescription;
     private String currentPackageName, currentClassName;
-    private ScheduledExecutorService scheduler;
+    private DelayScheduler scheduler;
     private Set<String> IMEApp;
     private static AccessService _instance;
     private boolean isShowDialog;
@@ -57,6 +59,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
     private View suspendView;
     private List<ScheduledFuture> futures;
     private LinkedBlockingDeque<WindowStateChangeListener> windowStateChangeLisnters;
+    public Field reflectSourceNodeId;
 
     public static AccessService getInstance(){
         return _instance;
@@ -65,7 +68,8 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
     @Override
     public void onServiceConnected(){
         futures = new CopyOnWriteArrayList<>();
-        scheduler = Executors.newSingleThreadScheduledExecutor();
+        DelayQueue<Delayed> delay = new DelayQueue<>();
+        scheduler = new DelayScheduler(1);
         IMEApp = new HashSet<>();
         List<InputMethodInfo> inputMethodInfoList = ((InputMethodManager)
                 getSystemService(android.accessibilityservice.AccessibilityService.INPUT_METHOD_SERVICE)).getInputMethodList();
@@ -102,6 +106,19 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
         AccessibilityServiceInfo info = getServiceInfo();
         info.packageNames = totalPackageNames;
         setServiceInfo(info);
+        Field fields[] = AccessibilityNodeInfo.class.getDeclaredFields();
+        for(Field field : AccessibilityNodeInfo.class.getDeclaredFields()){
+            if(field.getName().equals("mSourceNodeId")){
+                try {
+                    field.setAccessible(true);
+                }
+                catch (SecurityException e){
+                    e.printStackTrace();
+                }
+                reflectSourceNodeId = field;
+                break;
+            }
+        }
     }
 
     @Override
@@ -120,11 +137,11 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
         if(packageNameChar == null || classNameChar == null)return;
         String packageName = packageNameChar.toString();
         String className = classNameChar.toString();
-        Debug.info(packageName, 0);
         try{
             switch(event.getEventType())
             {
                 case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
+                    Debug.info("state " + packageName + " " + className, 0);
                     if(windowStateChangeLisnters.size() != 0){
                         WindowStateChangeListener listener = windowStateChangeLisnters.poll();
                         if(listener != null)
@@ -151,7 +168,8 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
                         }
                     }
                     break;
-
+                case AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED:
+                    break;
             }
         }catch(Throwable e){
             Debug.error(e.getMessage(), 0);
@@ -178,7 +196,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
 
     public void startProcess(){
         if(scheduler.isShutdown())
-            scheduler = Executors.newSingleThreadScheduledExecutor();
+            scheduler = new DelayScheduler(0);
         try {
             futures.removeIf(future -> future.isDone() || future.isCancelled());
             if (currentOperation != null && futures.size() == 0) {
@@ -492,6 +510,9 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
                             widgetDescription.description = cDesc == null ? "" : cDesc.toString();
                             widgetDescription.text =  cText == null ? "" : cText.toString();
                             widgetDescription.isScrollable = e.isScrollable();
+                            long beginTime = System.nanoTime();
+                            widgetDescription.resourceId = Utils.getResourceId(e, reflectSourceNodeId);
+                            Debug.info(String.valueOf(System.nanoTime() - beginTime), 0);
                             addWidgetButton.setEnabled(true);
                             packageNameView.setText(e.getPackageName().toString());
                             activityNameView.setText(e.getClassName().toString());

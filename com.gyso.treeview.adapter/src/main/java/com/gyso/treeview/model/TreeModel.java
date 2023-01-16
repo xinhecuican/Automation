@@ -53,24 +53,11 @@ public class TreeModel<T> implements Serializable {
         }
     }
 
-    @SafeVarargs
-    public final void insertNode(NodeModel<?> parent, T value, NodeModel<?>... childNodes) {
-        if (parent != null && childNodes != null && childNodes.length > 0) {
-            parent.treeModel = this;
-            List<NodeModel<T>> nodeModels = new LinkedList<>();
-            for (int i = 0; i < childNodes.length; i++) {
-                nodeModels.add((NodeModel<T>) childNodes[i]);
-                childNodes[i].treeModel = this;
-            }
-            ((NodeModel<T>) parent).addChildNodes(nodeModels);
-            for (NodeModel<?> child : childNodes) {
-                child.traverseIncludeSelf(next -> {
-                    next.floor = next.parentNode.floor + 1;
-                    List<NodeModel> floorList = getFloorList(next.floor);
-                    floorList.add(next);
-                });
-            }
-        }
+    public final void moveNode(NodeModel node, int from, int to){
+        NodeModel parentNode = node.parentNode;
+        if(parentNode == null)
+            return;
+        parentNode.moveNode(node, from, to);
     }
 
     /**

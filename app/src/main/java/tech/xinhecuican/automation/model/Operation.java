@@ -4,13 +4,14 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
 import tech.xinhecuican.automation.AccessService;
 import tech.xinhecuican.automation.utils.Debug;
+import tech.xinhecuican.automation.utils.DelayScheduler;
 
 public class Operation implements Serializable {
+    private static final long serialVersionUID = 8530017724969645813L;
     private String name;
     private ModelGroup model;
     private Long createDate;
@@ -78,9 +79,14 @@ public class Operation implements Serializable {
         isAuto = auto;
     }
 
-    public List<ScheduledFuture> startProcess(AccessService service, ScheduledExecutorService scheduler)
+    public List<ScheduledFuture> startProcess(AccessService service, DelayScheduler scheduler)
     {
+        scheduler.resetDelay();
         return model.startProcess(service, scheduler, 0);
+    }
+
+    public void moveModel(ModelGroup parent, int from, int to){
+        parent.moveModel(from, to);
     }
 
     public ModelGroup getRootModel(){

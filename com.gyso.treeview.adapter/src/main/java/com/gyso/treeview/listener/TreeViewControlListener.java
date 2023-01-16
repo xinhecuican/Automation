@@ -20,4 +20,11 @@ public interface TreeViewControlListener {
     int MAX_SCALE  = 1;
     void onScaling(int state, int percent);
     void onDragMoveNodesHit(@Nullable NodeModel<?> draggingNode, @Nullable NodeModel<?> hittingNode, @Nullable View draggingView, @Nullable View hittingView);
+
+    /**
+     *
+     * @return 返回true表示允许将该节点放到hit node下
+     */
+    boolean onDragMoveResult(@Nullable NodeModel<?> draggingNode, @Nullable NodeModel<?> hittingNode);
+    void onDragMoveIndexChange(@Nullable NodeModel<?> draggingNode, int from, int to);
 }

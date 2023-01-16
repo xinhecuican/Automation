@@ -132,8 +132,17 @@
                         android:text="@string/step"
                         android:textSize="34sp" />
 
-                    <Switch
+                    <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/delete_model_switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="0"
+                        android:gravity="center"
+                        android:text="@string/edit_mode"
+                        android:visibility="visible" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/edit_mode_switch"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:layout_weight="0"

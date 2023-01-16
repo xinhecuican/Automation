@@ -8,6 +8,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 public class WidgetDescription implements Externalizable {
+    private static final long serialVersionUID = 8352010394795005463L;
     public String packageName;
     public String activityName;
     public String className;
@@ -17,6 +18,7 @@ public class WidgetDescription implements Externalizable {
     public Rect rect;
     public boolean isClickable;
     public boolean isScrollable;
+    public long resourceId = -1;
 
     public WidgetDescription() {
         packageName = "";
@@ -62,6 +64,7 @@ public class WidgetDescription implements Externalizable {
         out.writeInt(rect.right);
         out.writeBoolean(isClickable);
         out.writeBoolean(isScrollable);
+        out.writeLong(resourceId);
     }
 
     @Override

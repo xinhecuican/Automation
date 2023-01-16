@@ -17,10 +17,12 @@ import java.util.Set;
 import tech.xinhecuican.automation.utils.Utils;
 
 public class Storage implements Serializable {
+    private static final long serialVersionUID = 8013166858589769929L;
+
     private List<Operation> operations;
     private static Storage _instance = null;
-    private transient boolean isLoad;
-    private transient boolean isShowBall;
+    private transient boolean isLoad = false;
+    private transient boolean isShowBall = false;
     private boolean isOpen;
     private boolean isHideTray;
     // 根据活动名查找活动
@@ -36,8 +38,6 @@ public class Storage implements Serializable {
 
     private Storage(){
         operations = new ArrayList<>();
-        isLoad = false;
-        isShowBall = false;
         isOpen = false;
         activityChooser = new HashMap<>();
         operationPackageNames = new HashSet<>();
@@ -82,6 +82,7 @@ public class Storage implements Serializable {
 
     public void setHideTray(boolean hideTray) {
         isHideTray = hideTray;
+        save();
     }
 
     public void checkOpen(boolean open){
@@ -144,6 +145,7 @@ public class Storage implements Serializable {
             outputStream = new ObjectOutputStream(
                     new FileOutputStream("/data/data/" + Utils.packageName + "/" + "save"));
             outputStream.writeObject(this);
+            outputStream.flush();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -199,5 +201,6 @@ public class Storage implements Serializable {
         if(storage.operationPackageNames != null)
             this.operationPackageNames = storage.operationPackageNames;
         this.isOpen = storage.isOpen;
+        this.isHideTray = storage.isHideTray;
     }
 }

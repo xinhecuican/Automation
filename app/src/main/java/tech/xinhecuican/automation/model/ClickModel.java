@@ -12,6 +12,7 @@ import tech.xinhecuican.automation.utils.Debug;
 import tech.xinhecuican.automation.utils.Utils;
 
 public class ClickModel extends Model implements Serializable {
+    private static final long serialVersionUID = -9000991974122377486L;
     private int x;
     private int y;
     private int mode;
@@ -86,7 +87,9 @@ public class ClickModel extends Model implements Serializable {
     public void run() {
         Debug.info("click run", 0);
         if(mode == CLICK_MODE_WIDGET){
+            long beginTime = System.nanoTime();
             AccessibilityNodeInfo node = Utils.findWidgetByDescription(service, widgetDescription);
+            Debug.info("ellipse " + String.valueOf(System.nanoTime() - beginTime), 0);
             if(node != null){
                 boolean clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 if(!clicked){

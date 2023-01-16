@@ -99,7 +99,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:hint="@string/scroll_time"
-            android:inputType="numberDecimal"
+            android:digits="0123456789"
             android:minHeight="48dp" />
     </LinearLayout>
 
@@ -122,7 +122,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:hint="@string/scroll_time"
-            android:inputType="numberDecimal"
+            android:digits="0123456789"
             android:minHeight="48dp" />
     </LinearLayout>
 </LinearLayout>

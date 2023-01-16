@@ -9,19 +9,18 @@ import tech.xinhecuican.automation.AccessService;
 import tech.xinhecuican.automation.utils.Debug;
 
 public class DelayModel extends Model implements Serializable, AccessService.WindowStateChangeListener {
-
+    private static final long serialVersionUID = -2481407273170045956L;
     private int mode;
-    private final transient Lock lock;
-    private final transient Condition condition;
+    protected transient Lock lock = new ReentrantLock();
+    protected transient Condition condition = lock.newCondition();
 
     public static final int DELAY_MODE_TIME = 0;
     public static final int DELAY_MODE_WINDOW_CHANGE = 1;
+    public static final int DELAY_MODE_TEXT = 2;
 
     public DelayModel(){
         super();
         mode = 0;
-        lock = new ReentrantLock();
-        condition = lock.newCondition();
     }
 
     @Override
@@ -60,7 +59,7 @@ public class DelayModel extends Model implements Serializable, AccessService.Win
     public void onWindowStateChange() {
         try {
             lock.lock();
-            condition.signalAll();
+            condition.signal();
         } finally{
             lock.unlock();
         }

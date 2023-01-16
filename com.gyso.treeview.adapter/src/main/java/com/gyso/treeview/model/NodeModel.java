@@ -127,6 +127,18 @@ public class NodeModel<T> implements Serializable {
         }
     }
 
+    public void moveNode(NodeModel node, int from, int to){
+        if(to == childNodes.size()){
+            childNodes.remove(from);
+            childNodes.add(node);
+        }
+        else{
+            if(from < to)
+                to--;
+            childNodes.add(to, childNodes.remove(from));
+        }
+    }
+
     /**
      * @param aChild node
      */

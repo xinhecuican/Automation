@@ -69,4 +69,5 @@
     <string name="new_delay_model">新建延时操作</string>
     <string name="hide_from_tray">从任务列表中隐藏</string>
     <string name="hide_tray_info">避免被清理操作删除</string>
+    <string name="edit_mode">编辑模式</string>
 </resources>

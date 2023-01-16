@@ -1,23 +1,22 @@
 package tech.xinhecuican.automation.model;
 
-import android.accessibilityservice.AccessibilityService;
-
 import java.io.Serializable;
 
+import tech.xinhecuican.automation.AccessService;
+
 public abstract class Model implements Serializable, Runnable {
-    protected transient AccessibilityService service;
+    private static final long serialVersionUID = 871710101046765316L;
+    protected transient AccessService service = null;
     protected int repeatTimes;
     protected int delay;
-    private transient boolean isShowDetail;
+    private transient boolean isShowDetail = false;
 
     Model(){
-        isShowDetail = false;
         delay = 0;
         repeatTimes = 1;
-        service = null;
     }
 
-    public void setService(AccessibilityService service){
+    public void setService(AccessService service){
         this.service = service;
     }
     public abstract int getModelType();

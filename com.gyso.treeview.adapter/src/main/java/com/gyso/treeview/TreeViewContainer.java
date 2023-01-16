@@ -42,6 +42,7 @@ import com.gyso.treeview.util.ViewBox;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -396,24 +397,60 @@ public class TreeViewContainer extends ViewGroup implements TreeViewNotifier {
         public void onViewReleased(@NonNull  View releasedChild, float xvel, float yvel) {
             TreeViewLog.d(TAG, "onViewReleased: ");
             Object fTag = releasedChild.getTag(R.id.the_hit_target);
+            TreeViewHolder<?> srcViewHolderTag = (TreeViewHolder<?>) releasedChild.getTag(R.id.item_holder);
             boolean getHit = fTag != null;
             if(getHit){
-                TreeViewHolder<?> targetHolder = getTreeViewHolder((NodeModel)fTag);
+                boolean canHit = true;
+                if(controlListener!=null){
+                    if(srcViewHolderTag instanceof TreeViewHolder){
+                        canHit = controlListener.onDragMoveResult( srcViewHolderTag.getNode(),((NodeModel<?>) fTag));
+                    }
+                }
+                else{
+                    canHit = false;
+                }
+                TreeViewHolder<?> targetHolder = getTreeViewHolder((NodeModel) fTag);
                 NodeModel<?> targetHolderNode = targetHolder.getNode();
-
-                TreeViewHolder<?> releasedChildHolder = (TreeViewHolder<?>)releasedChild.getTag(R.id.item_holder);
-                NodeModel<?> releasedChildHolderNode = releasedChildHolder.getNode();
-                if(releasedChildHolderNode.getParentNode()!=null){
-                    mTreeModel.removeNode(releasedChildHolderNode.getParentNode(),releasedChildHolderNode);
+                if(canHit) {
+                    TreeViewHolder<?> releasedChildHolder = (TreeViewHolder<?>) releasedChild.getTag(R.id.item_holder);
+                    NodeModel<?> releasedChildHolderNode = releasedChildHolder.getNode();
+                    if (releasedChildHolderNode.getParentNode() != null) {
+                        mTreeModel.removeNode(releasedChildHolderNode.getParentNode(), releasedChildHolderNode);
+                    }
+                    mTreeModel.addNode(targetHolderNode, releasedChildHolderNode);
+                    mTreeLayoutManager.calculateByLayoutAlgorithm(mTreeModel);
+                    if (isAnimateMove()) {
+                        recordAnchorLocationOnViewPort(false, false, targetHolderNode);
+                    }
+                    requestLayout();
                 }
-                mTreeModel.addNode(targetHolderNode,releasedChildHolderNode);
-                mTreeLayoutManager.calculateByLayoutAlgorithm(mTreeModel);
-                if(isAnimateMove()){
-                    recordAnchorLocationOnViewPort(false,false,targetHolderNode);
+                else{
+                    dragBlock.smoothRecover(releasedChild);
                 }
-                requestLayout();
             }else{
                 //recover
+                int index = getDragToIndex(releasedChild);
+                if(index != -1){
+                    int mIndex = 0;
+                    for(NodeModel model : srcViewHolderTag.getNode().getParentNode().getChildNodes()){
+                        if(model == srcViewHolderTag.getNode()){
+                            break;
+                        }
+                        mIndex++;
+                    }
+                    if(index != mIndex){
+                        if(controlListener != null) {
+                            controlListener.onDragMoveIndexChange(srcViewHolderTag.getNode(), mIndex, index);
+                        }
+                        mTreeModel.moveNode(srcViewHolderTag.getNode(), mIndex, index);
+                        mTreeLayoutManager.calculateByLayoutAlgorithm(mTreeModel);
+                        if (isAnimateMove()) {
+                            recordAnchorLocationOnViewPort(false, false,
+                                    srcViewHolderTag.getNode().getParentNode());
+                        }
+                        requestLayout();
+                    }
+                }
                 dragBlock.smoothRecover(releasedChild);
             }
             dragBlock.setDragging(false);
@@ -423,6 +460,48 @@ public class TreeViewContainer extends ViewGroup implements TreeViewNotifier {
             invalidate();
         }
     };
+
+    private int getDragToIndex(View view){
+        TreeViewHolder<?> srcHolder = (TreeViewHolder<?>) view.getTag(R.id.item_holder);
+        NodeModel<?> srcNode = srcHolder.getNode();
+        View srcView = srcHolder.getView();
+        float mX = srcView.getX();
+        float mY = srcView.getY();
+        float nextX = 1000000000;
+        float parentX = 0;
+        if(srcNode.parentNode == null) {
+            return -1;
+        }else{
+            parentX = getTreeViewHolder(srcNode.parentNode).getView().getX();
+        }
+        List<NodeModel> floorList = mTreeModel.getFloorList(srcNode.floor+1);
+        if(floorList.size() != 0){
+            nextX = getTreeViewHolder(floorList.get(0)).getView().getX();
+        }
+        if(mX > nextX || mX < parentX){
+            return -1;
+        }
+
+        List<NodeModel> nodes = srcNode.parentNode.getChildNodes();
+        int index = 0;
+        boolean findNode = false;
+        for(NodeModel nodeModel : nodes) {
+            if (nodeModel == srcNode) {
+                findNode = true;
+                continue;
+            }
+            float currentY = getTreeViewHolder(nodeModel).getView().getY();
+            if (currentY < mY)
+                index++;
+            else
+                break;
+            if(findNode){
+                findNode = false;
+                index++;
+            }
+        }
+        return index;
+    }
 
     @Override
     public void computeScroll() {

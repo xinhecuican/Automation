@@ -10,7 +10,7 @@ import tech.xinhecuican.automation.utils.Debug;
 import tech.xinhecuican.automation.utils.Utils;
 
 public class ScrollModel extends Model implements Serializable {
-
+    private static final long serialVersionUID = -6693338688163298466L;
     private int mode;
     private int scrollTime;
     private WidgetDescription widgetDescription;

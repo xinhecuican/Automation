@@ -9,12 +9,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
-import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Switch;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -146,12 +146,9 @@ public class MainFragment extends Fragment {
 
         Switch switchTray = (Switch)view.findViewById(R.id.switch_hide_tray);
         switchTray.setChecked(Storage.instance().isHideTray());
-        switchTray.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Storage.instance().setHideTray(isChecked);
-                System.exit(1);
-            }
+        switchTray.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Storage.instance().setHideTray(isChecked);
+            ((AppCompatActivity)context).finish();
         });
         return view;
     }

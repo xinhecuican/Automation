@@ -31,7 +31,7 @@
         <TextView
             android:id="@+id/textView4"
             android:layout_width="60dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="0"
             android:gravity="center"
             android:text="@string/repeat_times" />
@@ -43,7 +43,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:hint="@string/scroll_time"
-            android:inputType="numberDecimal"
+            android:digits="0123456789"
             android:minHeight="48dp" />
     </LinearLayout>
 
@@ -54,7 +54,7 @@
 
         <TextView
             android:layout_width="60dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="0"
             android:gravity="center"
             android:text="@string/delay" />
@@ -66,7 +66,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:hint="@string/scroll_time"
-            android:inputType="numberDecimal"
+            android:digits="0123456789"
             android:minHeight="48dp" />
     </LinearLayout>
 </LinearLayout>

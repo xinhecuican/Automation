@@ -6,11 +6,13 @@ import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import tech.xinhecuican.automation.AccessService;
 
 public class ModelGroup extends Model implements Serializable {
-    List<Model> models;
+    private static final long serialVersionUID = 1626838888606104993L;
+    private List<Model> models;
 
     public ModelGroup(){
         super();
@@ -43,6 +45,17 @@ public class ModelGroup extends Model implements Serializable {
 
     }
 
+    public void moveModel(int from, int to){
+        if(to == models.size()){
+            models.add(models.remove(from));
+        }
+        else{
+            if(from < to)
+                to--;
+            models.add(to, models.remove(from));
+        }
+    }
+
     public int getTotalDelay(){
         int currentDelay = delay;
         for(Model model : models){
@@ -73,6 +86,10 @@ public class ModelGroup extends Model implements Serializable {
                 }
                 else if(model.getModelType() == 3){
                     DelayModel delayModel = (DelayModel) model;
+                    if(delayModel.lock == null){
+                        delayModel.lock = new ReentrantLock();
+                        delayModel.condition = delayModel.lock.newCondition();
+                    }
                     service.addWindowStateChangeListener(delayModel);
                     futures.add(scheduler.schedule(model, model.delay, TimeUnit.MILLISECONDS));
                     beginDelay += model.delay;

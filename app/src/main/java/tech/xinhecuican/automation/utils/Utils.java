@@ -2,13 +2,13 @@ package tech.xinhecuican.automation.utils;
 
 import static android.content.Context.ACTIVITY_SERVICE;
 
-import android.accessibilityservice.AccessibilityService;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Parcel;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -17,10 +17,13 @@ import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.annotation.RequiresApi;
 
-import java.util.ArrayList;
+import java.lang.reflect.Field;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 
+import tech.xinhecuican.automation.AccessService;
 import tech.xinhecuican.automation.model.WidgetDescription;
 
 public class Utils {
@@ -125,14 +128,18 @@ public class Utils {
         }
     }
 
-    public static AccessibilityNodeInfo findWidgetByDescription(AccessibilityService service, WidgetDescription description){
-        List<AccessibilityNodeInfo> nodes = new ArrayList<>();
+    public static AccessibilityNodeInfo findWidgetByDescription(AccessService service, WidgetDescription description){
+        Deque<AccessibilityNodeInfo> nodes = new ArrayDeque<>();
         nodes.add(service.getRootInActiveWindow());
-        int index = 0;
-        boolean isFind = false;
-        while(index < nodes.size()){
-            AccessibilityNodeInfo node = nodes.get(index++);
+        while(!nodes.isEmpty()){
+            AccessibilityNodeInfo node = nodes.poll();
             if(node != null){
+                if(description.resourceId != -1){
+                    long nodeId = Utils.getResourceId(node, service.reflectSourceNodeId);
+                    if(nodeId == description.resourceId) {
+                        return node;
+                    }
+                }
                 CharSequence cId = node.getViewIdResourceName();
                 CharSequence cClass = node.getClassName();
                 CharSequence cText = node.getText();
@@ -142,8 +149,9 @@ public class Utils {
                 boolean idEqual = !considerId || cId != null && description.id.equals(cId.toString());
                 boolean classEqual = !considerClass || cClass != null && description.className.equals(cClass.toString());
                 boolean textEqual = !considertext || cText != null && description.text.equals(cText.toString());
-                if(idEqual && classEqual && textEqual)
+                if(idEqual && classEqual && textEqual) {
                     return node;
+                }
             }
 
             for(int i = 0; i< Objects.requireNonNull(node).getChildCount(); i++){
@@ -156,5 +164,40 @@ public class Utils {
 
     public static int dp2px(float dpValue) {
         return (int) (0.5f + dpValue * Resources.getSystem().getDisplayMetrics().density);
+    }
+
+    public static long getResourceId(AccessibilityNodeInfo info, Field reflectId){
+        long resouceId = -1;
+        if(reflectId != null){
+            try {
+                resouceId = (long) reflectId.get(info);
+            } catch (IllegalAccessException | NullPointerException e) {
+                e.printStackTrace();
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                    AccessibilityNodeInfo node = new AccessibilityNodeInfo(info);
+                    Parcel parcel = Parcel.obtain();
+                    node.writeToParcel(parcel, 0);
+                    parcel.setDataPosition(0);
+                    parcel.marshall();
+                    long field = parcel.readLong();
+                    if((field & 1L) == 1L) parcel.readInt();
+
+                    if((field & 2L) == 2L) resouceId = parcel.readLong();
+                }
+                return resouceId;
+            }
+        }
+        else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            AccessibilityNodeInfo node = new AccessibilityNodeInfo(info);
+            Parcel parcel = Parcel.obtain();
+            node.writeToParcel(parcel, 0);
+            parcel.setDataPosition(0);
+            parcel.marshall();
+            long field = parcel.readLong();
+            if((field & 1L) == 1L) parcel.readInt();
+
+            if((field & 2L) == 2L) resouceId = parcel.readLong();
+        }
+        return resouceId;
     }
 }

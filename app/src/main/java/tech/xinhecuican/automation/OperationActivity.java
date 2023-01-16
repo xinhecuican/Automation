@@ -14,12 +14,12 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.RadioButton;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -92,13 +92,11 @@ public class OperationActivity extends AppCompatActivity {
                 normalDialog.setMessage(R.string.dialog_back_info);
                 normalDialog.setPositiveButton(R.string.confirm,
                         (dialog, which) -> {
-                            setBackData(true);
+                            setBackData(false);
                             OperationActivity.this.finish();
                         });
                 normalDialog.setNegativeButton(R.string.close,
                         (dialog, which) -> {
-                            setBackData(false);
-                            OperationActivity.this.finish();
                         });
                 normalDialog.show();
             }
@@ -173,8 +171,6 @@ public class OperationActivity extends AppCompatActivity {
         treeView.setTreeLayoutManager(treeLayoutManager);
         treeModelAdapter.setTreeModel(treeModel);
         TreeViewEditor treeEditor = treeView.getEditor();
-        treeEditor.requestMoveNodeByDragging(true);
-        treeView.requestDisallowInterceptTouchEvent(false);
         treeView.setTreeViewControlListener(new TreeViewControlListener() {
             @Override
             public void onScaling(int state, int percent) {
@@ -183,7 +179,25 @@ public class OperationActivity extends AppCompatActivity {
 
             @Override
             public void onDragMoveNodesHit(@Nullable NodeModel<?> draggingNode, @Nullable NodeModel<?> hittingNode, @Nullable View draggingView, @Nullable View hittingView) {
+            }
 
+            @Override
+            public boolean onDragMoveResult(@Nullable NodeModel<?> draggingNode, @Nullable NodeModel<?> hittingNode) {
+                boolean accept = hittingNode.getValue() instanceof ModelGroup && draggingNode != rootNode && hittingNode != draggingNode.getParentNode();
+                if(accept){
+                    ModelGroup group = (ModelGroup) hittingNode.getValue();
+                    ModelGroup parent = (ModelGroup) draggingNode.getParentNode().getValue();
+                    Model current = (Model) draggingNode.getValue();
+                    parent.removeModel(current);
+                    group.addModel(current);
+                }
+                return accept;
+            }
+
+            @Override
+            public void onDragMoveIndexChange(@Nullable NodeModel<?> draggingNode, int from, int to) {
+                operation.moveModel((ModelGroup) draggingNode.getParentNode().getValue(), from, to);
+                isChange = true;
             }
         });
 
@@ -225,11 +239,21 @@ public class OperationActivity extends AppCompatActivity {
             bottomSheet.show();//显示弹窗
         });
 
-        Switch deleteModelSwitch = (Switch)findViewById(R.id.delete_model_switch);
+        SwitchCompat deleteModelSwitch = (SwitchCompat)findViewById(R.id.delete_model_switch);
         deleteModelSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 treeModelAdapter.setDelete(isChecked);
+            }
+        });
+
+        treeEditor.requestMoveNodeByDragging(false);
+        SwitchCompat editModeSwitch = (SwitchCompat)findViewById(R.id.delete_model_switch);
+        editModeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                treeEditor.requestMoveNodeByDragging(isChecked);
+                treeModelAdapter.setExpandable(!isChecked);
             }
         });
 

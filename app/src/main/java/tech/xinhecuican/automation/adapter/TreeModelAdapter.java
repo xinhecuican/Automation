@@ -43,6 +43,7 @@ public class TreeModelAdapter extends TreeViewBaseAdapter<Model>{
     private AppCompatActivity parent;
     private boolean isChange;
     private boolean isDelete;
+    private boolean isExpandable;
     private GysoTreeView treeView;
     public TreeModelAdapter(AppCompatActivity parent, ModelGroup datas, TreeViewEditor editor, GysoTreeView treeView){
         this.datas = datas;
@@ -51,6 +52,7 @@ public class TreeModelAdapter extends TreeViewBaseAdapter<Model>{
         isChange = false;
         isDelete = false;
         this.treeView = treeView;
+        isExpandable = true;
     }
     @Override
     public int getViewType(NodeModel<Model> model) {
@@ -59,6 +61,14 @@ public class TreeModelAdapter extends TreeViewBaseAdapter<Model>{
 
     public void setDelete(boolean delete) {
         isDelete = delete;
+    }
+
+    public void setExpandable(boolean expandable) {
+        isExpandable = expandable;
+        if(!expandable){
+            hideDetails(datas);
+            notifyDataSetChange();
+        }
     }
 
     @Override
@@ -83,41 +93,37 @@ public class TreeModelAdapter extends TreeViewBaseAdapter<Model>{
         Model model = holder.getNode().getValue();
         ImageView cardImage = (ImageView)view.findViewById(R.id.card_image);
         cardImage.setOnClickListener(v->{
-            model.setShowDetail(!model.isShowDetail());
-            notifyItemViewChange(holder.getNode());
-        });
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(isDelete){
-                    if(holder.getNode().getValue() == datas){
-                        return;
-                    }
-                    try {
-                        ModelGroup modelGroup = (ModelGroup) holder.getNode().getParentNode().getValue();
-                        modelGroup.removeModel(holder.getNode().getValue());
-                    }
-                    catch (Exception e){
-                        e.printStackTrace();
-                    }
-                    editor.removeNode(holder.getNode());
-                    isChange = true;
-                }
+            if(TreeModelAdapter.this.isExpandable) {
+                model.setShowDetail(!model.isShowDetail());
+                notifyItemViewChange(holder.getNode());
             }
         });
-        view.setOnHoverListener(new View.OnHoverListener() {
-            @Override
-            public boolean onHover(View v, MotionEvent event) {
-                switch(event.getAction()){
-                    case MotionEvent.ACTION_HOVER_ENTER:
-                        treeView.requestDisallowInterceptTouchEvent(true);
-                        break;
-                    case MotionEvent.ACTION_HOVER_EXIT:
-                        treeView.requestDisallowInterceptTouchEvent(false);
-                        break;
+        view.setOnClickListener(v -> {
+            if(isDelete){
+                if(holder.getNode().getValue() == datas){
+                    return;
                 }
-                return false;
+                try {
+                    ModelGroup modelGroup = (ModelGroup) holder.getNode().getParentNode().getValue();
+                    modelGroup.removeModel(holder.getNode().getValue());
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                editor.removeNode(holder.getNode());
+                isChange = true;
             }
+        });
+        view.setOnHoverListener((v, event) -> {
+            switch(event.getAction()){
+                case MotionEvent.ACTION_HOVER_ENTER:
+                    treeView.requestDisallowInterceptTouchEvent(true);
+                    break;
+                case MotionEvent.ACTION_HOVER_EXIT:
+                    treeView.requestDisallowInterceptTouchEvent(false);
+                    break;
+            }
+            return true;
         });
         TextView cardName = (TextView)view.findViewById(R.id.card_name);
         LinearLayout detailLayout = (LinearLayout) view.findViewById(R.id.model_detail);
@@ -338,7 +344,6 @@ public class TreeModelAdapter extends TreeViewBaseAdapter<Model>{
                         }
                         isChange = true;
                     });
-                    detailLayout.addView(inflater.inflate(R.layout.group_model, null));
                     EditText repeat_edit = (EditText) view.findViewById(R.id.model_repeat);
                     repeat_edit.setText(String.valueOf(model.getRepeatTimes()));
                     repeat_edit.addTextChangedListener(new NumTextChangeListener(repeat_edit) {
@@ -359,6 +364,7 @@ public class TreeModelAdapter extends TreeViewBaseAdapter<Model>{
                             isChange = true;
                         }
                     });
+                    break;
                 }
             }
         }
@@ -412,5 +418,17 @@ public class TreeModelAdapter extends TreeViewBaseAdapter<Model>{
                 ToastUtil.ToastShort(parent, parent.getString(R.string.accessiblity_not_open));
             }
         });
+    }
+
+    private void hideDetails(ModelGroup group){
+        group.setShowDetail(false);
+        for(Model model : group.getModels()){
+            if(model.getModelType() == 2){
+                hideDetails((ModelGroup) model);
+            }
+            else{
+                model.setShowDetail(false);
+            }
+        }
     }
 }
