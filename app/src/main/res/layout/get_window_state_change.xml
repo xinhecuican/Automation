@@ -7,35 +7,30 @@
     android:background="#808FB365"
     android:orientation="vertical">
 
-    <ScrollView
-        android:id="@+id/scrollView2"
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/activity_name_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginStart="30dp"
         android:layout_marginEnd="30dp"
         app:layout_constraintBottom_toTopOf="@+id/exit_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/activity_name_list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </ScrollView>
-
+        app:layout_constraintTop_toTopOf="parent" />
     <Button
         android:id="@+id/exit_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="30dp"
         android:layout_marginEnd="30dp"
+        android:layout_marginBottom="10dp"
         android:text="@string/exit"
         android:textColor="#004D40"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scrollView2" />
+        app:layout_constraintTop_toBottomOf="@+id/activity_name_list" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -68,8 +68,17 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
     private List<ScheduledFuture> futures;
     private LinkedBlockingDeque<WindowStateChangeListener> windowStateChangeLisnters;
     public Field reflectSourceNodeId;
-    public List<String> activityRecorder;
+    public List<ActivityInfo> activityRecorder;
     private ActivityNameAdapter adapter;
+
+    public class ActivityInfo{
+        public String packageName;
+        public String activityName;
+        ActivityInfo(String packageName, String activityName){
+            this.packageName = packageName;
+            this.activityName = activityName;
+        }
+    }
 
     public static AccessService getInstance(){
         return _instance;
@@ -150,7 +159,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
                 case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
                     Debug.info("state " + packageName + " " + className, 0);
                     if(isShowActivityName){
-                        activityRecorder.add(className);
+                        activityRecorder.add(new ActivityInfo(packageName, className));
                         adapter.notifyItemChanged(activityRecorder.size()-1);
                     }
                     if(windowStateChangeLisnters.size() != 0){
@@ -158,24 +167,24 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
                         if(listener != null)
                             listener.onWindowStateChange(className);
                     }
-                    boolean isActivity = !className.startsWith("android.") && !className.startsWith("androidx.");
+//                    boolean isActivity = !className.startsWith("android.") && !className.startsWith("androidx.");
                     if(!currentPackageName.equals(packageName)){
-                        if(isActivity) {
-                            currentPackageName = packageName;
+//                        if(isActivity) {
+                        currentPackageName = packageName;
+                        currentClassName = className;
+                        if(currentOperation != null && currentOperation.isOnePage())
+                            stopProcess();
+                        judgeStartProcess();
+//                        }
+                    }
+                    else{
+//                        if(isActivity){
+                        if(!currentClassName.equals(className)){
                             currentClassName = className;
                             if(currentOperation != null && currentOperation.isOnePage())
                                 stopProcess();
                             judgeStartProcess();
-                        }
-                    }
-                    else{
-                        if(isActivity){
-                            if(!currentClassName.equals(className)){
-                                currentClassName = className;
-                                if(currentOperation != null && currentOperation.isOnePage())
-                                    stopProcess();
-                                judgeStartProcess();
-                            }
+//                            }
                         }
                     }
                     break;
@@ -195,7 +204,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
             currentOperation = Storage.instance().getChoosedOperation();
         }
         else{
-            currentOperation = Storage.instance().findOperationByActivity(currentClassName);
+            currentOperation = Storage.instance().findOperationByActivity(currentPackageName, currentClassName);
         }
         if(currentOperation != null && currentOperation.isAuto())
             startProcess();
@@ -381,7 +390,8 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
             @Override
             public void onItemClick(View view, int position) {
                 super.onItemClick(view, position);
-                saveWidgetDescription.className = activityRecorder.get(position);
+                saveWidgetDescription.packageName = activityRecorder.get(position).packageName;
+                saveWidgetDescription.activityName = activityRecorder.get(position).activityName;
             }
         };
         recyclerView.setLayoutManager(new LinearLayoutManager(inflater.getContext(), RecyclerView.VERTICAL, true));

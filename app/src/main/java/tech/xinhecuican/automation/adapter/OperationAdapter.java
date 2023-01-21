@@ -11,6 +11,7 @@ import androidx.cardview.widget.CardView;
 
 import com.google.android.material.card.MaterialCardView;
 
+import java.util.Comparator;
 import java.util.List;
 
 import tech.xinhecuican.automation.OperationActivity;
@@ -18,6 +19,7 @@ import tech.xinhecuican.automation.R;
 import tech.xinhecuican.automation.manager.OperationManager;
 import tech.xinhecuican.automation.model.Operation;
 import tech.xinhecuican.automation.model.Storage;
+import tech.xinhecuican.automation.utils.Utils;
 
 public class OperationAdapter extends RecyclerAdapter<Operation>  implements
         OperationManager.OperationListener {
@@ -34,8 +36,11 @@ public class OperationAdapter extends RecyclerAdapter<Operation>  implements
 
     @Override
     public void onOperationDelete(List<Integer> pos) {
-        for(int index : pos)
-            notifyItemRemoved(index);
+        pos.sort(Comparator.naturalOrder());
+        for(int i=0; i<pos.size(); i++)
+        {
+            notifyItemRemoved(pos.get(i) - i);
+        }
     }
 
     private static class RadioClickListener implements View.OnClickListener{
@@ -82,7 +87,7 @@ public class OperationAdapter extends RecyclerAdapter<Operation>  implements
         TextView operationCount = (TextView) view.findViewById(R.id.operation_number);
         operationCount.setText(String.valueOf(data.getModelCount()));
         TextView activityName = (TextView) view.findViewById(R.id.operation_activity_name);
-        activityName.setText(data.getActivityName());
+        activityName.setText(Utils.showActivityName(data.getPackageName(), data.getActivityName()));
         TextView time = (TextView) view.findViewById(R.id.operation_time);
         time.setText(String.valueOf(data.getDateEllipse())
                 .concat(view.getContext().getString(R.string.day_before)));
@@ -90,7 +95,6 @@ public class OperationAdapter extends RecyclerAdapter<Operation>  implements
         ImageButton settingButton = (ImageButton) view.findViewById(R.id.operation_setting);
         settingButton.setOnClickListener(v -> {
             Intent intent = new Intent(parent, OperationActivity.class);
-            intent.putExtra("operation", mDatas.get(position));
             intent.putExtra("index", position);
             parent.startActivityForResult(intent, 0);
         });

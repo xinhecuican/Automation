@@ -7,13 +7,14 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import tech.xinhecuican.automation.AccessService;
 import tech.xinhecuican.automation.R;
 
-public class ActivityNameAdapter extends RecyclerAdapter<String>{
+public class ActivityNameAdapter extends RecyclerAdapter<AccessService.ActivityInfo>{
     private int selectPostion;
     private LinearLayout selectView;
 
-    public ActivityNameAdapter(List<String> datas) {
+    public ActivityNameAdapter(List<AccessService.ActivityInfo> datas) {
         super(datas);
         selectPostion = -1;
     }
@@ -24,9 +25,17 @@ public class ActivityNameAdapter extends RecyclerAdapter<String>{
     }
 
     @Override
-    public void bindData(VH holder, String data, int position) {
+    public void bindData(VH holder, AccessService.ActivityInfo data, int position) {
+        TextView packageNameView = (TextView)holder.getRootView().findViewById(R.id.package_name);
+        int index = -1;
+        if((index = data.packageName.lastIndexOf('.')) != -1){
+            packageNameView.setText(data.packageName.substring(index+1));
+        }
+        else{
+            packageNameView.setText(data.packageName);
+        }
         TextView textView = (TextView)holder.getRootView().findViewById(R.id.activity_name);
-        textView.setText(data);
+        textView.setText(data.activityName);
     }
 
     @Override
@@ -43,7 +52,7 @@ public class ActivityNameAdapter extends RecyclerAdapter<String>{
         if(pos == selectPostion)
             return;
         if(selectPostion != -1){
-            selectView.setBackgroundColor(Color.parseColor("#00FFF-FFF"));
+            selectView.setBackgroundColor(Color.parseColor("#00000000"));
         }
         LinearLayout card = (LinearLayout) view;
         card.setBackgroundColor(Color.parseColor("#4BB6E87F"));

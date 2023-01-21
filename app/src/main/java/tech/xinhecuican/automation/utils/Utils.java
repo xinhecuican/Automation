@@ -45,6 +45,16 @@ public class Utils {
         return view.getMeasuredHeight();
     }
 
+    public static String showActivityName(String packageName, String activityName){
+        if(activityName.startsWith("android")){
+            int index = -1;
+            if(!packageName.equals("") && (index = packageName.lastIndexOf('.')) != -1){
+                return packageName.substring(index+1).concat(activityName.substring(activityName.indexOf('.')));
+            }
+        }
+        return activityName;
+    }
+
 
     /**
      * 将本应用置顶到最前端

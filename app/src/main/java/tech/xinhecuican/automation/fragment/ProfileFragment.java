@@ -24,7 +24,6 @@ import tech.xinhecuican.automation.R;
 import tech.xinhecuican.automation.adapter.ItemTouchHelperCallback;
 import tech.xinhecuican.automation.adapter.OperationAdapter;
 import tech.xinhecuican.automation.manager.OperationManager;
-import tech.xinhecuican.automation.model.Operation;
 import tech.xinhecuican.automation.model.Storage;
 
 /**
@@ -91,8 +90,6 @@ public class ProfileFragment extends Fragment {
         FloatingActionButton floatingActionButton = (FloatingActionButton) mainView.findViewById(R.id.new_operation);
         floatingActionButton.setOnClickListener(view1 -> {
             Intent intent = new Intent(inflater.getContext(), OperationActivity.class);
-            intent.putExtra("operation", new Operation(getString(R.string.operation)
-                    .concat(String.valueOf(Storage.instance().getOperations().size()))));
             intent.putExtra("index", -1);
             startActivityForResult(intent, 0);
         });

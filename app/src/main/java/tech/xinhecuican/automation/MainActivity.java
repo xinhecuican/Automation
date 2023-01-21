@@ -191,10 +191,12 @@ public class MainActivity extends AppCompatActivity{
                         @Override
                         public void onToastHidden() {
                             realBack = false;
-                            MainActivity.super.onBackPressed();
                         }
                     });
                 }
+            }
+            else{
+                MainActivity.super.onBackPressed();
             }
         }
 

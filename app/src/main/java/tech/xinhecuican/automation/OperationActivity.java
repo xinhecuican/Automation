@@ -64,9 +64,15 @@ public class OperationActivity extends AppCompatActivity {
         isChange = false;
         setContentView(R.layout.activity_operation);
         Intent intent = getIntent();
-        operation = (Operation)intent.getSerializableExtra("operation");
         index = intent.getIntExtra("index", 0);
         isNew = index == -1;
+        if(isNew){
+            operation = new Operation((getString(R.string.operation)
+                    .concat(String.valueOf(Storage.instance().getOperations().size()))));
+        }
+        else{
+            operation = Storage.instance().getOperation(index);
+        }
         TextInputEditText textEdit = (TextInputEditText) findViewById(R.id.operation_name_edit);
         textEdit.setText(operation.getName());
         textEdit.addTextChangedListener(new TextWatcher() {
@@ -117,13 +123,13 @@ public class OperationActivity extends AppCompatActivity {
         operationPackageButton.setOnClickListener(view->{
             if(service != null){
                 service.setDescription(operation.generateCoordDescription(-1), operation.generateWidgetDescription(-1));
-                service.showActivityCustomizationDialog(false, true, new AccessService.WindowInfoResultListener() {
+                service.showActivityNameDialog(new AccessService.WindowInfoResultListener() {
                     @Override
                     public void onWidgetResult(WidgetDescription description) {
                         if(description != null) {
                             operation.setActivityName(description.activityName);
                             operation.setPackageName(description.packageName);
-                            activityDescription.setText(operation.getActivityName());
+                            activityDescription.setText(Utils.showActivityName(operation.getPackageName(), operation.getActivityName()));
                             isChange = true;
                         }
                         Utils.setTopApp(OperationActivity.this);
@@ -140,7 +146,7 @@ public class OperationActivity extends AppCompatActivity {
         });
 
         activityDescription = (TextView) findViewById(R.id.view_description);
-        activityDescription.setText(operation.getActivityName());
+        activityDescription.setText(Utils.showActivityName(operation.getPackageName(), operation.getActivityName()));
 
         RadioButton isAutoButton = (RadioButton) findViewById(R.id.allow_auto);
         isAutoButton.setChecked(operation.isAuto());

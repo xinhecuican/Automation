@@ -29,8 +29,8 @@ public class Storage implements Serializable {
     private boolean isOpen;
     private boolean isHideTray;
     // 根据活动名查找活动
-    private Map<String, List<Operation>> activityChooser;
-    private Set<String> operationPackageNames;
+    private transient Map<String, List<Operation>> activityChooser;
+    private transient Set<String> operationPackageNames;
     private transient boolean isChooseActivity = false;
     private transient Operation choosedOperation = null;
 
@@ -73,10 +73,16 @@ public class Storage implements Serializable {
     }
 
     public void reset(){
-        operations = new ArrayList<>();
+        if(operations != null){
+            operations.clear();
+        }
         isOpen = false;
-        activityChooser = new HashMap<>();
-        operationPackageNames = new HashSet<>();
+        if(activityChooser != null) {
+            activityChooser.clear();
+        }
+        if(operationPackageNames != null) {
+            operationPackageNames.clear();
+        }
         isHideTray = false;
         isChooseActivity = false;
     }
@@ -104,28 +110,29 @@ public class Storage implements Serializable {
             isOpen = false;
     }
 
-    public void removeActivity(String activityName, Operation operation){
+    public void removeActivity(Operation operation){
+        String activityName = Utils.showActivityName(operation.getPackageName(), operation.getActivityName());
         if(activityChooser.containsKey(activityName)){
             activityChooser.get(activityName).remove(operation);
         }
     }
 
     public void removeActivity(int index){
-        String activityName = operations.get(index).getActivityName();
         Operation operation = operations.get(index);
-        removeActivity(activityName, operation);
+        removeActivity(operation);
     }
 
     public void removeActivity(List<Integer> list){
         for(Integer index : list){
-            removeActivity(operations.get(index).getActivityName(), operations.get(index));
+            removeActivity(operations.get(index));
         }
     }
 
     public void addActivity(Operation operation){
-        if(!activityChooser.containsKey(operation.getActivityName()))
-            activityChooser.put(operation.getActivityName(), new ArrayList<>());
-        List<Operation> chooserActivities = activityChooser.get(operation.getActivityName());
+        String activityName = Utils.showActivityName(operation.getPackageName(), operation.getActivityName());
+        if(!activityChooser.containsKey(activityName))
+            activityChooser.put(activityName, new ArrayList<>());
+        List<Operation> chooserActivities = activityChooser.get(activityName);
         boolean find = false;
         for(int i=0; i<chooserActivities.size(); i++){
             if(chooserActivities.get(i) == operation){
@@ -135,7 +142,7 @@ public class Storage implements Serializable {
             }
         }
         if(!find)
-            activityChooser.get(operation.getActivityName()).add(operation);
+            activityChooser.get(activityName).add(operation);
     }
 
     public boolean addPackageName(Operation operation){
@@ -163,10 +170,11 @@ public class Storage implements Serializable {
         return oldLength != operationPackageNames.size();
     }
 
-    public Operation findOperationByActivity(String activityName){
-        if(activityChooser.containsKey(activityName)) {
+    public Operation findOperationByActivity(String packageName, String activityName){
+        String currentActivityName = Utils.showActivityName(packageName, activityName);
+        if(activityChooser.containsKey(currentActivityName)) {
             Operation result = null;
-            for(Operation operation : Objects.requireNonNull(activityChooser.get(activityName))){
+            for(Operation operation : Objects.requireNonNull(activityChooser.get(currentActivityName))){
                 if(operation.isAuto())
                     return operation;
                 result = operation;
@@ -276,12 +284,13 @@ public class Storage implements Serializable {
     }
 
     private void copy(Storage storage){
-        if(storage.operations != null)
+        if(storage.operations != null) {
             this.operations = storage.operations;
-        if(storage.activityChooser != null)
-            this.activityChooser = storage.activityChooser;
-        if(storage.operationPackageNames != null)
-            this.operationPackageNames = storage.operationPackageNames;
+            for(Operation operation : storage.operations){
+                addActivity(operation);
+                addPackageName(operation);
+            }
+        }
         this.isOpen = storage.isOpen;
         this.isHideTray = storage.isHideTray;
     }
