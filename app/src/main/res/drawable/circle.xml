@@ -3,7 +3,11 @@
     android:shape="oval">
 
     <corners android:radius="0dp" />   <!-- 设置圆角弧度 -->
-    <solid android:color="#147A77" />   <!-- 设置背景颜色 -->
+    <gradient
+        android:startColor="#BCBCBC"
+        android:endColor="@color/white"
+        android:type="radial"
+        android:gradientRadius="30dp"/>
     <size
         android:width="40dp"
         android:height="40dp" />

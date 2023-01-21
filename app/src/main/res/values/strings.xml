@@ -59,6 +59,7 @@
     <string name="confirm_back">press to return</string>
     <string name="allow_automatic_startup">allow automatic startup</string>
     <string name="float_ball">floatball</string>
+    <string name="text_trigger">text trigger</string>
     <string name="open_suspend">open suspended window</string>
     <string name="suspend_description">suspend description</string>
     <string name="stop_cond">stop condition</string>
@@ -79,4 +80,10 @@
     <string name="hide_from_tray">hide from tray</string>
     <string name="hide_tray_info">hide tray info</string>
     <string name="edit_mode">edit mode</string>
+    <string name="text">text</string>
+    <string name="trigger_one_page">trigger one page</string>
+    <string name="is_attach_previous">need attach previous</string>
+    <string name="add_window_info">add window information</string>
+    <string name="wait_time">wait time</string>
+    <string name="new_condition_model">new condition model</string>
 </resources>

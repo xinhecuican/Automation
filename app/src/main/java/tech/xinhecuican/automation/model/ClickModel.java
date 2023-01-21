@@ -17,9 +17,11 @@ public class ClickModel extends Model implements Serializable {
     private int y;
     private int mode;
     private WidgetDescription widgetDescription;
+    private String text;
 
     public static final int CLICK_MODE_WIDGET = 0;
     public static final int CLICK_MODE_POSITION = 1;
+    public static final int CLICK_MODE_TEXT = 2;
 
     public ClickModel(){
         super();
@@ -29,6 +31,7 @@ public class ClickModel extends Model implements Serializable {
         delay = 0;
         mode = CLICK_MODE_POSITION;
         widgetDescription = new WidgetDescription();
+        text = "";
     }
 
     public ClickModel(int x, int y, int repeatTimes, int delay)
@@ -39,6 +42,7 @@ public class ClickModel extends Model implements Serializable {
         this.delay = delay;
         mode = CLICK_MODE_POSITION;
         widgetDescription = new WidgetDescription();
+        text = "";
     }
 
     @Override
@@ -84,12 +88,10 @@ public class ClickModel extends Model implements Serializable {
     }
 
     @Override
-    public void run() {
-        Debug.info("click run", 0);
+    public void onRun() {
+        Debug.info("click run " + String.valueOf(Thread.currentThread().getId()), 0);
         if(mode == CLICK_MODE_WIDGET){
-            long beginTime = System.nanoTime();
             AccessibilityNodeInfo node = Utils.findWidgetByDescription(service, widgetDescription);
-            Debug.info("ellipse " + String.valueOf(System.nanoTime() - beginTime), 0);
             if(node != null){
                 boolean clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 if(!clicked){
@@ -101,6 +103,14 @@ public class ClickModel extends Model implements Serializable {
         }
         else if(mode == CLICK_MODE_POSITION){
             click(this.x, this.y);
+        }
+        else if(mode == CLICK_MODE_TEXT){
+            AccessibilityNodeInfo node = Utils.findWidgetByText(service, text);
+            if(node != null) {
+                Rect rect = new Rect();
+                node.getBoundsInScreen(rect);
+                click(rect.centerX(), rect.centerY());
+            }
         }
     }
 
@@ -116,5 +126,13 @@ public class ClickModel extends Model implements Serializable {
         } else {
             Debug.error("SDK can't support click", 0);
         }
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 }

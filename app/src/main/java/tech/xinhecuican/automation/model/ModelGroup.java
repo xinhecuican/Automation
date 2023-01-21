@@ -3,12 +3,6 @@ package tech.xinhecuican.automation.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
-
-import tech.xinhecuican.automation.AccessService;
 
 public class ModelGroup extends Model implements Serializable {
     private static final long serialVersionUID = 1626838888606104993L;
@@ -41,7 +35,7 @@ public class ModelGroup extends Model implements Serializable {
     }
 
     @Override
-    public void run() {
+    public void onRun() {
 
     }
 
@@ -68,39 +62,5 @@ public class ModelGroup extends Model implements Serializable {
             }
         }
         return currentDelay * repeatTimes;
-    }
-
-    public List<ScheduledFuture> startProcess(AccessService service, ScheduledExecutorService scheduler, int beginDelay){
-        List<ScheduledFuture> futures = new ArrayList<>();
-        for(int i=0; i<repeatTimes; i++) {
-            if(delay != 0) {
-                futures.add(scheduler.schedule(() -> {}, delay, TimeUnit.MILLISECONDS));
-            }
-            beginDelay += delay;
-            for (Model model : models) {
-                model.setService(service);
-                if (model.getModelType() == 2) {
-                    ModelGroup modelGroup = (ModelGroup) model;
-                    futures.addAll(modelGroup.startProcess(service, scheduler, beginDelay));
-                    beginDelay += modelGroup.getTotalDelay();
-                }
-                else if(model.getModelType() == 3){
-                    DelayModel delayModel = (DelayModel) model;
-                    if(delayModel.lock == null){
-                        delayModel.lock = new ReentrantLock();
-                        delayModel.condition = delayModel.lock.newCondition();
-                    }
-                    service.addWindowStateChangeListener(delayModel);
-                    futures.add(scheduler.schedule(model, model.delay, TimeUnit.MILLISECONDS));
-                    beginDelay += model.delay;
-                }
-                else {
-                    for (int k = 0; k < model.getRepeatTimes(); k++)
-                        futures.add(scheduler.schedule(model, model.delay, TimeUnit.MILLISECONDS));
-                    beginDelay += model.delay;
-                }
-            }
-        }
-        return futures;
     }
 }

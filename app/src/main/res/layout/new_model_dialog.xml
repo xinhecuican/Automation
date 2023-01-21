@@ -4,27 +4,33 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/new_click_model"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/new_click_model" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/new_scroll_model"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/new_scroll_model" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/new_group_model"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/new_model_group" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/new_model_delay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/new_delay_model" />
+
+    <Button
+        android:id="@+id/new_condition_model"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/new_condition_model" />
 </LinearLayout>

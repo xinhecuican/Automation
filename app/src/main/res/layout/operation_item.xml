@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/operation_item_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="right"
+    android:background="@color/cardview_light_background"
+    android:checkable="false"
+    android:clickable="true"
+    android:foreground="?attr/selectableItemBackgroundBorderless"
     app:cardCornerRadius="10dp"
     app:cardElevation="10dp">
 
@@ -19,11 +23,13 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/operation_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="TextView"
+                android:lines="1"
+                android:maxWidth="130dp"
+                android:text="fdasfdsafdsafdsafs"
                 android:textSize="20sp" />
 
             <LinearLayout
@@ -31,14 +37,14 @@
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="0"
                     android:gravity="center"
                     android:text="@string/operation_count" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/operation_number"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -56,15 +62,28 @@
             android:layoutDirection="rtl"
             android:orientation="horizontal">
 
-            <RadioButton
+            <com.google.android.material.radiobutton.MaterialRadioButton
                 android:id="@+id/operation_option_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
                 android:gravity="center"
-                android:visibility="invisible" />
+                android:minWidth="48dp"
+                android:minHeight="48dp"
+                android:visibility="gone" />
 
-            <TextView
+            <ImageButton
+                android:id="@+id/operation_setting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:background="@color/transparent"
+                android:contentDescription="@string/button_new"
+                android:minWidth="48dp"
+                android:minHeight="48dp"
+                app:srcCompat="@drawable/more" />
+
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/operation_time"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
@@ -72,7 +91,7 @@
                 android:gravity="center"
                 android:text="TextView" />
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/operation_activity_name"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
@@ -86,4 +105,4 @@
     </LinearLayout>
 
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

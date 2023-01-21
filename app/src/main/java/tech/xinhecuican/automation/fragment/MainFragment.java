@@ -126,12 +126,7 @@ public class MainFragment extends Fragment {
                 }
                 AccessService service = AccessService.getInstance();
                 if(service != null){
-                    service.showSuspendball(new AccessService.SuspendCloseListener() {
-                        @Override
-                        public void onSuspendClose() {
-                            MainFragment.this.notify();
-                        }
-                    });
+                    service.showSuspendball(() -> switchSuspend.setChecked(Storage.instance().isShowBall()));
                 }
                 Storage.instance().setShowBall(true);
             }
@@ -144,7 +139,7 @@ public class MainFragment extends Fragment {
             }
         });
 
-        Switch switchTray = (Switch)view.findViewById(R.id.switch_hide_tray);
+        Switch switchTray = (Switch) view.findViewById(R.id.switch_hide_tray);
         switchTray.setChecked(Storage.instance().isHideTray());
         switchTray.setOnCheckedChangeListener((buttonView, isChecked) -> {
             Storage.instance().setHideTray(isChecked);

@@ -1,5 +1,7 @@
 package tech.xinhecuican.automation.model;
 
+import android.os.ParcelFileDescriptor;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,6 +14,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import tech.xinhecuican.automation.utils.Utils;
@@ -26,8 +29,10 @@ public class Storage implements Serializable {
     private boolean isOpen;
     private boolean isHideTray;
     // 根据活动名查找活动
-    private Map<String, Operation> activityChooser;
+    private Map<String, List<Operation>> activityChooser;
     private Set<String> operationPackageNames;
+    private transient boolean isChooseActivity = false;
+    private transient Operation choosedOperation = null;
 
 
     public static Storage instance(){
@@ -67,6 +72,15 @@ public class Storage implements Serializable {
         save();
     }
 
+    public void reset(){
+        operations = new ArrayList<>();
+        isOpen = false;
+        activityChooser = new HashMap<>();
+        operationPackageNames = new HashSet<>();
+        isHideTray = false;
+        isChooseActivity = false;
+    }
+
     public boolean isShowBall() {
         return isShowBall;
     }
@@ -90,18 +104,38 @@ public class Storage implements Serializable {
             isOpen = false;
     }
 
-    public void removeActivity(String activityName){
-        activityChooser.remove(activityName);
+    public void removeActivity(String activityName, Operation operation){
+        if(activityChooser.containsKey(activityName)){
+            activityChooser.get(activityName).remove(operation);
+        }
+    }
+
+    public void removeActivity(int index){
+        String activityName = operations.get(index).getActivityName();
+        Operation operation = operations.get(index);
+        removeActivity(activityName, operation);
     }
 
     public void removeActivity(List<Integer> list){
         for(Integer index : list){
-            removeActivity(operations.get(index).getActivityName());
+            removeActivity(operations.get(index).getActivityName(), operations.get(index));
         }
     }
 
     public void addActivity(Operation operation){
-        activityChooser.put(operation.getActivityName(), operation);
+        if(!activityChooser.containsKey(operation.getActivityName()))
+            activityChooser.put(operation.getActivityName(), new ArrayList<>());
+        List<Operation> chooserActivities = activityChooser.get(operation.getActivityName());
+        boolean find = false;
+        for(int i=0; i<chooserActivities.size(); i++){
+            if(chooserActivities.get(i) == operation){
+                find = true;
+                chooserActivities.set(i, operation);
+                break;
+            }
+        }
+        if(!find)
+            activityChooser.get(operation.getActivityName()).add(operation);
     }
 
     public boolean addPackageName(Operation operation){
@@ -130,8 +164,15 @@ public class Storage implements Serializable {
     }
 
     public Operation findOperationByActivity(String activityName){
-        if(activityChooser.containsKey(activityName))
-            return activityChooser.get(activityName);
+        if(activityChooser.containsKey(activityName)) {
+            Operation result = null;
+            for(Operation operation : Objects.requireNonNull(activityChooser.get(activityName))){
+                if(operation.isAuto())
+                    return operation;
+                result = operation;
+            }
+            return result;
+        }
         return null;
     }
 
@@ -141,9 +182,28 @@ public class Storage implements Serializable {
     {
         ObjectOutputStream outputStream = null;
         try {
-            String text = "hello world";
             outputStream = new ObjectOutputStream(
                     new FileOutputStream("/data/data/" + Utils.packageName + "/" + "save"));
+            outputStream.writeObject(this);
+            outputStream.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void save(ParcelFileDescriptor path){
+        ObjectOutputStream outputStream = null;
+        try {
+            outputStream = new ObjectOutputStream(
+                    new FileOutputStream(path.getFileDescriptor()));
             outputStream.writeObject(this);
             outputStream.flush();
         } catch (Exception e) {
@@ -184,6 +244,28 @@ public class Storage implements Serializable {
         }
     }
 
+    public void load(ParcelFileDescriptor path){
+        ObjectInputStream inputStream = null;
+        try {
+            inputStream = new ObjectInputStream(
+                    new FileInputStream(path.getFileDescriptor())
+            );
+            Storage storage = (Storage)inputStream.readObject();
+            combine(storage);
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            isLoad = true;
+        }
+    }
+
     public void deleteOperation(List<Integer> indexs)
     {
         indexs.sort(Comparator.naturalOrder());
@@ -202,5 +284,31 @@ public class Storage implements Serializable {
             this.operationPackageNames = storage.operationPackageNames;
         this.isOpen = storage.isOpen;
         this.isHideTray = storage.isHideTray;
+    }
+
+    private void combine(Storage storage){
+        if(storage.operations != null){
+            this.operations.addAll(storage.operations);
+            for(Operation operation : storage.operations){
+                addActivity(operation);
+                addPackageName(operation);
+            }
+        }
+    }
+
+    public void setChooseActivity(boolean chooseActivity){
+        this.isChooseActivity = chooseActivity;
+    }
+
+    public void setChoosedOperation(Operation choosedOperation) {
+        this.choosedOperation = choosedOperation;
+    }
+
+    public boolean isChooseActivity() {
+        return isChooseActivity;
+    }
+
+    public Operation getChoosedOperation() {
+        return choosedOperation;
     }
 }

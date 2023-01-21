@@ -69,6 +69,9 @@ public class ProfileFragment extends Fragment {
         View mainView = inflater.inflate(R.layout.fragment_profile, container, false);
         recyclerView = mainView.findViewById(R.id.main_recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(inflater.getContext(), RecyclerView.VERTICAL, true));
+        if(adapter != null){
+            OperationManager.instance().removeListener(adapter);
+        }
         adapter = new OperationAdapter((AppCompatActivity)inflater.getContext(), Storage.instance().getOperations()){
             @Override
             public void onItemLongClick(View view, int position) {
@@ -122,6 +125,18 @@ public class ProfileFragment extends Fragment {
         return mainView;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        OperationManager.instance().addListener(adapter);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        OperationManager.instance().removeListener(adapter);
+    }
+
     public void showSelectButtons(){
         for(int i=0; i< recyclerView.getChildCount(); i++){
             recyclerView.getChildAt(i).findViewById(R.id.operation_option_button).setVisibility(View.VISIBLE);
@@ -132,7 +147,7 @@ public class ProfileFragment extends Fragment {
         for(int i=0; i< recyclerView.getChildCount(); i++){
             RadioButton button = (RadioButton)recyclerView.getChildAt(i).findViewById(R.id.operation_option_button);
             button.setChecked(false);
-            button.setVisibility(View.INVISIBLE);
+            button.setVisibility(View.GONE);
         }
         OperationManager.instance().cancelDelete();
         isDeleteViewShow = false;

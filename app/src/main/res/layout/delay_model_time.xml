@@ -4,31 +4,39 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <RadioGroup
-        android:id="@+id/trigger_group"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <RadioButton
-            android:id="@+id/delay_cond_time"
+        <RadioGroup
+            android:id="@+id/trigger_group"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/scroll_time_cond" />
+            android:orientation="horizontal">
 
-        <RadioButton
-            android:id="@+id/delay_cond_state"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/window_state" />
-    </RadioGroup>
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/delay_cond_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/scroll_time_cond" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/delay_cond_state"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/window_state" />
+
+        </RadioGroup>
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/textView4"
             android:layout_width="60dp"
             android:layout_height="match_parent"
@@ -37,13 +45,14 @@
             android:text="@string/repeat_times" />
 
         <EditText
+            android:inputType="numberDecimal"
             android:id="@+id/model_repeat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
             android:hint="@string/scroll_time"
-            android:digits="0123456789"
+
             android:minHeight="48dp" />
     </LinearLayout>
 
@@ -52,7 +61,7 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:layout_weight="0"
@@ -60,13 +69,15 @@
             android:text="@string/delay" />
 
         <EditText
+            android:inputType="numberDecimal"
             android:id="@+id/model_delay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
             android:hint="@string/scroll_time"
-            android:digits="0123456789"
+
             android:minHeight="48dp" />
     </LinearLayout>
+
 </LinearLayout>

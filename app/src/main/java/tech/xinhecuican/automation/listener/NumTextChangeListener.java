@@ -24,8 +24,8 @@ public abstract class NumTextChangeListener implements TextWatcher {
         if(s.equals(""))
             return;
         if (!s.trim().substring(0).equals(".")
-                &&Integer.parseInt(s)<1) {
-            editText.setText("1");
+                &&Integer.parseInt(s)<0) {
+            editText.setText("0");
             editText.setSelection(1);
         }
     }

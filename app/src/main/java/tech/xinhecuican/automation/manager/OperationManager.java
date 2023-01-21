@@ -74,7 +74,7 @@ public class OperationManager {
         boolean packageChange = !operation.getPackageName().equals(
                 Storage.instance().getOperation(index).getPackageName());
         if(activityChange)
-            Storage.instance().removeActivity(Storage.instance().getOperation(index).getActivityName());
+            Storage.instance().removeActivity(index);
         int packageLength = Storage.instance().getOperationPackageNames().length;
         Storage.instance().setOperation(index, operation);
         Storage.instance().addActivity(operation);

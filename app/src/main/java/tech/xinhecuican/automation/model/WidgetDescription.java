@@ -30,6 +30,7 @@ public class WidgetDescription implements Externalizable {
         rect = new Rect();
         isClickable = false;
         isScrollable = false;
+        resourceId = -1;
     }
 
     public WidgetDescription(WidgetDescription other) {
@@ -42,6 +43,7 @@ public class WidgetDescription implements Externalizable {
         this.rect = other.rect;
         this.isClickable = other.isClickable;
         this.isScrollable = other.isScrollable;
+        this.resourceId = other.resourceId;
     }
 
     public String toString(){
@@ -80,6 +82,7 @@ public class WidgetDescription implements Externalizable {
         int right = in.readInt();
         isClickable = in.readBoolean();
         isScrollable = in.readBoolean();
+        resourceId = in.readLong();
         rect = new Rect(left, top, right, bottom);
     }
 }

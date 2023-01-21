@@ -2,9 +2,12 @@ package tech.xinhecuican.automation.model;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import tech.xinhecuican.automation.AccessService;
 import tech.xinhecuican.automation.utils.Debug;
@@ -18,6 +21,7 @@ public class Operation implements Serializable {
     private String packageName;
     private String activityName;
     private boolean isAuto;
+    private boolean isOnePage;
 
     public Operation(String name)
     {
@@ -27,6 +31,7 @@ public class Operation implements Serializable {
         packageName = "";
         activityName = "";
         isAuto = false;
+        isOnePage = false;
     }
 
     public void setName(String name) {
@@ -81,8 +86,68 @@ public class Operation implements Serializable {
 
     public List<ScheduledFuture> startProcess(AccessService service, DelayScheduler scheduler)
     {
-        scheduler.resetDelay();
-        return model.startProcess(service, scheduler, 0);
+        return startProcessInner(model, service, scheduler);
+    }
+
+    public List<ScheduledFuture> startProcessInner(Model root, AccessService service, DelayScheduler scheduler){
+        List<ScheduledFuture> futures = new ArrayList<>();
+        root.runStateListener = null;
+        root.setService(service);
+        root.setTaskErrorListener(service);
+        switch(root.getModelType()){
+            case 0: // click model
+            case 1:{ // scroll model
+                for (int k = 0; k < root.getRepeatTimes(); k++) {
+                    futures.add(scheduler.schedule(root, root.delay, TimeUnit.MILLISECONDS));
+                }
+                break;
+            }
+            case 2:{ // model group
+                ModelGroup modelGroup = (ModelGroup) root;
+                for(int i=0; i< root.repeatTimes; i++){
+                    if(root.delay != 0){
+                        futures.add(scheduler.schedule(() -> {}, root.delay, TimeUnit.MILLISECONDS));
+                    }
+                    for(Model model : modelGroup.getModels()){
+                        futures.addAll(startProcessInner(model, service, scheduler));
+                    }
+                }
+                break;
+            }
+            case 3:{ // delay model
+                DelayModel delayModel = (DelayModel) root;
+                if (delayModel.lock == null) {
+                    delayModel.lock = new ReentrantLock();
+                    delayModel.condition = delayModel.lock.newCondition();
+                }
+                if(delayModel.getMode() == DelayModel.DELAY_MODE_WINDOW_CHANGE)
+                    service.addWindowStateChangeListener(delayModel);
+                futures.add(scheduler.schedule(delayModel, delayModel.delay, TimeUnit.MILLISECONDS));
+                break;
+            }
+            case 4:{ // condition model
+                ConditionModel conditionModel = (ConditionModel) root;
+                service.addWindowStateChangeListener(conditionModel);
+                conditionModel.successFutures = null;
+                conditionModel.failFutures = null;
+                if(conditionModel.lock == null){
+                    conditionModel.lock = new ReentrantLock();
+                    conditionModel.lockCondition = conditionModel.lock.newCondition();
+                }
+                futures.add(scheduler.schedule(conditionModel, conditionModel.delay, TimeUnit.MILLISECONDS));
+                if(conditionModel.getSuccessModel() != null){
+                    conditionModel.successFutures = startProcessInner(conditionModel.getSuccessModel(), service, scheduler);
+                    futures.addAll(conditionModel.successFutures);
+                }
+                if(conditionModel.getFailModel() != null){
+                    conditionModel.failFutures = startProcessInner(conditionModel.getFailModel(), service, scheduler);
+                    futures.addAll(conditionModel.failFutures);
+                }
+                break;
+            }
+
+        }
+        return futures;
     }
 
     public void moveModel(ModelGroup parent, int from, int to){
@@ -130,5 +195,13 @@ public class Operation implements Serializable {
         widgetDescription.packageName = packageName;
         widgetDescription.className = activityName;
         return widgetDescription;
+    }
+
+    public boolean isOnePage() {
+        return isOnePage;
+    }
+
+    public void setOnePage(boolean onePage) {
+        isOnePage = onePage;
     }
 }

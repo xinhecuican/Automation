@@ -2,43 +2,46 @@ package tech.xinhecuican.automation.adapter;
 
 import android.content.Intent;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
+import com.google.android.material.card.MaterialCardView;
+
 import java.util.List;
 
 import tech.xinhecuican.automation.OperationActivity;
 import tech.xinhecuican.automation.R;
-import tech.xinhecuican.automation.listener.OperationListenerAdapter;
 import tech.xinhecuican.automation.manager.OperationManager;
 import tech.xinhecuican.automation.model.Operation;
+import tech.xinhecuican.automation.model.Storage;
 
-public class OperationAdapter extends RecyclerAdapter<Operation>  implements RecyclerAdapter.OnItemClickListener {
-    private AppCompatActivity parent;
-    private OperationManager manager;
+public class OperationAdapter extends RecyclerAdapter<Operation>  implements
+        OperationManager.OperationListener {
+    private final AppCompatActivity parent;
+    private int selectPostion = -1;
+    private MaterialCardView selectView;
 
 
     public OperationAdapter(AppCompatActivity parent, List<Operation> datas) {
         super(datas);
-        setOnItemClickListener(this);
+
         this.parent = parent;
-        manager = OperationManager.instance();
-        manager.addListener(new OperationListenerAdapter(){
-            @Override
-            public void onOperationDelete(List<Integer> pos) {
-                for(int index : pos)
-                    notifyItemRemoved(index);
-            }
-        });
     }
 
-    private class RadioClickListener implements View.OnClickListener{
+    @Override
+    public void onOperationDelete(List<Integer> pos) {
+        for(int index : pos)
+            notifyItemRemoved(index);
+    }
 
-        private RecyclerAdapter.VH holder;
-        private OperationManager manager;
+    private static class RadioClickListener implements View.OnClickListener{
+
+        private final RecyclerAdapter.VH holder;
+        private final OperationManager manager;
         private boolean isChecked;
 
         RadioClickListener(RecyclerAdapter.VH holder, OperationManager manager)
@@ -84,21 +87,39 @@ public class OperationAdapter extends RecyclerAdapter<Operation>  implements Rec
         time.setText(String.valueOf(data.getDateEllipse())
                 .concat(view.getContext().getString(R.string.day_before)));
 
+        ImageButton settingButton = (ImageButton) view.findViewById(R.id.operation_setting);
+        settingButton.setOnClickListener(v -> {
+            Intent intent = new Intent(parent, OperationActivity.class);
+            intent.putExtra("operation", mDatas.get(position));
+            intent.putExtra("index", position);
+            parent.startActivityForResult(intent, 0);
+        });
+
         RadioButton radioButton = (RadioButton) view.findViewById(R.id.operation_option_button);
-        OperationAdapter.RadioClickListener radioClickListener = new RadioClickListener(holder, manager);
+        OperationAdapter.RadioClickListener radioClickListener = new RadioClickListener(holder, OperationManager.instance());
         radioButton.setOnClickListener(radioClickListener);
     }
 
     @Override
     public void onItemClick(View view, int position) {
-        Intent intent = new Intent(parent, OperationActivity.class);
-        intent.putExtra("operation", mDatas.get(position));
-        intent.putExtra("index", position);
-        parent.startActivityForResult(intent, 0);
+        Storage.instance().setChooseActivity(true);
+        Storage.instance().setChoosedOperation(mDatas.get(position));
+        setSelectPostion(view, position);
     }
 
     @Override
     public void onItemLongClick(View view, int position) {
 
+    }
+    private void setSelectPostion(View view, int pos){
+        if(pos == selectPostion)
+            return;
+        if(selectPostion != -1){
+            selectView.setCardBackgroundColor(parent.getColor(com.google.android.material.R.color.cardview_light_background));
+        }
+        MaterialCardView card = (MaterialCardView) view;
+        card.setCardBackgroundColor(parent.getColor(com.google.android.material.R.color.material_dynamic_primary70));
+        selectView = card;
+        selectPostion = pos;
     }
 }

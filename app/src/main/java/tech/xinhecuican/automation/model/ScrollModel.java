@@ -83,7 +83,7 @@ public class ScrollModel extends Model implements Serializable {
     }
 
     @Override
-    public void run() {
+    public void onRun() {
         Debug.info("scroll run", 0);
         switch(mode){
             case SCROLL_MODE_TIME: {
@@ -127,10 +127,10 @@ public class ScrollModel extends Model implements Serializable {
                     timer.scheduleAtFixedRate(new TimerTask() {
                         @Override
                         public void run() {
-                            if(node.getText().equals(stopText))
+                            if(Utils.findWidgetByText(service, stopText) != null)
                                 timer.cancel();
-                            else
-                                node.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
+                            else if(!node.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD))
+                                timer.cancel();
                         }
                     }, 0, 1000);
                 }

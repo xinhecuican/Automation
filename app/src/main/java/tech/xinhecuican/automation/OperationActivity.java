@@ -10,16 +10,15 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.RadioButton;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -36,6 +35,7 @@ import com.gyso.treeview.model.TreeModel;
 import tech.xinhecuican.automation.adapter.TreeModelAdapter;
 import tech.xinhecuican.automation.manager.OperationManager;
 import tech.xinhecuican.automation.model.ClickModel;
+import tech.xinhecuican.automation.model.ConditionModel;
 import tech.xinhecuican.automation.model.CoordinateDescription;
 import tech.xinhecuican.automation.model.DelayModel;
 import tech.xinhecuican.automation.model.Model;
@@ -117,7 +117,7 @@ public class OperationActivity extends AppCompatActivity {
         operationPackageButton.setOnClickListener(view->{
             if(service != null){
                 service.setDescription(operation.generateCoordDescription(-1), operation.generateWidgetDescription(-1));
-                service.showActivityCustomizationDialog(false, new AccessService.WindowInfoResultListener() {
+                service.showActivityCustomizationDialog(false, true, new AccessService.WindowInfoResultListener() {
                     @Override
                     public void onWidgetResult(WidgetDescription description) {
                         if(description != null) {
@@ -145,13 +145,26 @@ public class OperationActivity extends AppCompatActivity {
         RadioButton isAutoButton = (RadioButton) findViewById(R.id.allow_auto);
         isAutoButton.setChecked(operation.isAuto());
         isAutoButton.setOnClickListener(new View.OnClickListener() {
-            boolean isCheck = false;
+            boolean isCheck = isAutoButton.isChecked();
             @Override
             public void onClick(View v) {
                 isCheck = !isCheck;
                 operation.setAuto(isCheck);
                 isChange = true;
                 isAutoButton.setChecked(isCheck);
+            }
+        });
+
+        RadioButton onePageButton = (RadioButton) findViewById(R.id.one_page);
+        onePageButton.setChecked(operation.isOnePage());
+        onePageButton.setOnClickListener(new View.OnClickListener() {
+            boolean isCheck = onePageButton.isChecked();
+            @Override
+            public void onClick(View v) {
+                isCheck = !isCheck;
+                operation.setOnePage(isCheck);
+                isChange = true;
+                onePageButton.setChecked(isCheck);
             }
         });
 
@@ -183,20 +196,44 @@ public class OperationActivity extends AppCompatActivity {
 
             @Override
             public boolean onDragMoveResult(@Nullable NodeModel<?> draggingNode, @Nullable NodeModel<?> hittingNode) {
-                boolean accept = hittingNode.getValue() instanceof ModelGroup && draggingNode != rootNode && hittingNode != draggingNode.getParentNode();
+                boolean accept = draggingNode != rootNode && hittingNode != draggingNode.getParentNode();
                 if(accept){
-                    ModelGroup group = (ModelGroup) hittingNode.getValue();
-                    ModelGroup parent = (ModelGroup) draggingNode.getParentNode().getValue();
-                    Model current = (Model) draggingNode.getValue();
-                    parent.removeModel(current);
-                    group.addModel(current);
+                    if(hittingNode.getValue() instanceof ModelGroup) {
+                        ModelGroup group = (ModelGroup) hittingNode.getValue();
+                        ModelGroup parent = (ModelGroup) draggingNode.getParentNode().getValue();
+                        Model current = (Model) draggingNode.getValue();
+                        parent.removeModel(current);
+                        group.addModel(current);
+                    }
+                    else if(hittingNode.getValue() instanceof ConditionModel){
+                        ConditionModel conditionModel = (ConditionModel)hittingNode.getValue();
+                        accept = conditionModel.addModel((Model) draggingNode.getValue());
+                        if(accept){
+                            if(draggingNode.getParentNode().getValue() instanceof ModelGroup){
+                                ModelGroup parent = (ModelGroup)draggingNode.getParentNode().getValue();
+                                parent.removeModel((Model) draggingNode.getValue());
+                            }
+                            if(draggingNode.getParentNode().getValue() instanceof ConditionModel){
+                                ConditionModel parent = (ConditionModel) draggingNode.getParentNode().getValue();
+                                parent.removeModel((Model) draggingNode.getValue());
+                            }
+                        }
+                    }
+                    else
+                        accept = false;
                 }
                 return accept;
             }
 
             @Override
             public void onDragMoveIndexChange(@Nullable NodeModel<?> draggingNode, int from, int to) {
-                operation.moveModel((ModelGroup) draggingNode.getParentNode().getValue(), from, to);
+                if(draggingNode.getParentNode().getValue() instanceof ModelGroup) {
+                    operation.moveModel((ModelGroup) draggingNode.getParentNode().getValue(), from, to);
+                }
+                if(draggingNode.getParentNode().getValue() instanceof ConditionModel){
+                    ConditionModel conditionModel = (ConditionModel) draggingNode.getParentNode().getValue();
+                    conditionModel.exchangeModel();
+                }
                 isChange = true;
             }
         });
@@ -227,6 +264,7 @@ public class OperationActivity extends AppCompatActivity {
             groupModelButton.setOnClickListener(v->{
                 ModelGroup modelGroup = new ModelGroup();
                 operation.addModel(modelGroup);
+                isChange = true;
                 treeEditor.addChildNodes(rootNode, new NodeModel<Model>(modelGroup));
             });
             Button delayModelButton = bottomSheet.findViewById(R.id.new_model_delay);
@@ -234,27 +272,28 @@ public class OperationActivity extends AppCompatActivity {
             delayModelButton.setOnClickListener(v->{
                 DelayModel delayModel = new DelayModel();
                 operation.addModel(delayModel);
+                isChange = true;
                 treeEditor.addChildNodes(rootNode, new NodeModel<Model>(delayModel));
+            });
+            Button conditionModelButton = bottomSheet.findViewById(R.id.new_condition_model);
+            assert conditionModelButton != null;
+            conditionModelButton.setOnClickListener(v->{
+                ConditionModel conditionModel = new ConditionModel();
+                operation.addModel(conditionModel);
+                isChange = true;
+                treeEditor.addChildNodes(rootNode, new NodeModel<Model>(conditionModel));
             });
             bottomSheet.show();//显示弹窗
         });
 
-        SwitchCompat deleteModelSwitch = (SwitchCompat)findViewById(R.id.delete_model_switch);
-        deleteModelSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                treeModelAdapter.setDelete(isChecked);
-            }
-        });
+        Switch deleteModelSwitch = (Switch)findViewById(R.id.delete_model_switch);
+        deleteModelSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> treeModelAdapter.setDelete(isChecked));
 
         treeEditor.requestMoveNodeByDragging(false);
-        SwitchCompat editModeSwitch = (SwitchCompat)findViewById(R.id.delete_model_switch);
-        editModeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                treeEditor.requestMoveNodeByDragging(isChecked);
-                treeModelAdapter.setExpandable(!isChecked);
-            }
+        Switch editModeSwitch = (Switch)findViewById(R.id.edit_model_switch);
+        editModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            treeEditor.requestMoveNodeByDragging(isChecked);
+            treeModelAdapter.setExpandable(!isChecked);
         });
 
     }
@@ -272,7 +311,7 @@ public class OperationActivity extends AppCompatActivity {
         }
         Intent resultIntent = new Intent();
         Bundle bundle = new Bundle();
-        bundle.putInt("index", index==-1?Storage.instance().operationCount():index);
+        bundle.putInt("index", index==-1&&isChange?Storage.instance().operationCount():index);
         resultIntent.putExtras(bundle);
         setResult(0, resultIntent);
     }

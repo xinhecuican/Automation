@@ -13,7 +13,6 @@ import java.util.List;
 
 public abstract class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerAdapter.VH> implements ItemTouchHelperAdapter{
     protected List<T> mDatas;
-    private RecyclerAdapter.OnItemClickListener onItemClickListener;
 
     public RecyclerAdapter(List<T> datas){
         this.mDatas = datas;
@@ -37,15 +36,6 @@ public abstract class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerAd
         notifyItemRemoved(position);
     }
 
-    public interface OnItemClickListener {
-        void onItemClick(View view, int position);
-        void onItemLongClick(View view, int position);
-    }
-
-    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
-        this.onItemClickListener = onItemClickListener;
-    }
-
     /**
      * 根据viewType返回布局id
      * @param viewType
@@ -64,30 +54,28 @@ public abstract class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerAd
         return VH.get(parent,getLayoutId(viewType));
     }
 
+    public void onItemClick(View view, int position){
+
+    }
+
+    public void onItemLongClick(View view, int position){
+
+    }
+
     @Override
     public void onBindViewHolder(VH holder, int position) {
         bindData(holder, mDatas.get(position), position);
 
-        holder.getRootView().setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                if(onItemClickListener != null) {
-                    int pos = holder.getLayoutPosition();
-                    onItemClickListener.onItemClick(holder.getRootView(), pos);
-                }
-            }
+        holder.getRootView().setOnClickListener(v -> {
+            int pos = holder.getLayoutPosition();
+            onItemClick(holder.getRootView(), pos);
         });
 
-        holder.getRootView().setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if(onItemClickListener != null) {
-                    int pos = holder.getLayoutPosition();
-                    onItemClickListener.onItemLongClick(holder.itemView, pos);
-                }
-                //表示此事件已经消费，不会触发单击事件
-                return true;
-            }
+        holder.getRootView().setOnLongClickListener(v -> {
+            int pos = holder.getLayoutPosition();
+            onItemLongClick(holder.itemView, pos);
+            //表示此事件已经消费，不会触发单击事件
+            return true;
         });
 
     }

@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:visibility="visible">
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/stop_cond"
@@ -19,19 +19,19 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <RadioButton
+        <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/scroll_time_cond"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/scroll_time_cond" />
 
-        <RadioButton
+        <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/scroll_end_cond"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/end_cond" />
 
-        <RadioButton
+        <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/scroll_widget_cond"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -43,7 +43,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginEnd="10dp"
@@ -52,7 +52,7 @@
             android:text="@string/widget"
             android:textSize="24sp" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/widget_info"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -80,7 +80,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/textView4"
             android:layout_width="60dp"
             android:layout_height="match_parent"
@@ -89,13 +89,14 @@
             android:text="@string/scroll_time" />
 
         <EditText
+            android:inputType="numberDecimal"
             android:id="@+id/scroll_time_input"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
             android:hint="@string/scroll_time"
-            android:digits="0123456789"
+
             android:minHeight="48dp" />
     </LinearLayout>
 
@@ -104,7 +105,7 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:layout_weight="0"
@@ -112,13 +113,14 @@
             android:text="@string/delay" />
 
         <EditText
+            android:inputType="numberDecimal"
             android:id="@+id/model_delay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
             android:hint="@string/scroll_time"
-            android:digits="0123456789"
+
             android:minHeight="48dp" />
     </LinearLayout>
 </LinearLayout>

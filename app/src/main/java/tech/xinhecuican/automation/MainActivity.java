@@ -157,7 +157,10 @@ public class MainActivity extends AppCompatActivity{
         super.onActivityResult(requestCode, resultCode, data);
         if(data == null)
             return;
-        ((ProfileFragment)fragmentList.get(1)).itemChanged(data.getIntExtra("index", 0));
+        int index = data.getIntExtra("index", 0);
+        if(index == -1)
+            return;
+        ((ProfileFragment)fragmentList.get(1)).itemChanged(index);
     }
 
     public void changeDeleteView(boolean hidden){
@@ -188,11 +191,11 @@ public class MainActivity extends AppCompatActivity{
                         @Override
                         public void onToastHidden() {
                             realBack = false;
+                            MainActivity.super.onBackPressed();
                         }
                     });
                 }
             }
-            super.onBackPressed();
         }
 
     }

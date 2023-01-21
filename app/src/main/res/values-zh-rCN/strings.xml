@@ -39,6 +39,7 @@
     <string name="coord_trigger">坐标触发</string>
     <string name="widget_trigger">控件触发</string>
     <string name="trigger_view">触发页面</string>
+    <string name="text_trigger">文本触发</string>
     <string name="main">主页</string>
     <string name="profile">配置</string>
     <string name="setting">设置</string>
@@ -70,4 +71,10 @@
     <string name="hide_from_tray">从任务列表中隐藏</string>
     <string name="hide_tray_info">避免被清理操作删除</string>
     <string name="edit_mode">编辑模式</string>
+    <string name="text">文本</string>
+    <string name="trigger_one_page">跳转后停止</string>
+    <string name="is_attach_previous">作为上一个操作的终止条件</string>
+    <string name="add_window_info">添加窗体信息</string>
+    <string name="wait_time">等待时间</string>
+    <string name="new_condition_model">新建条件模型</string>
 </resources>

@@ -10,19 +10,19 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/import_setting_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/import_setting" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/export_setting_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/export_setting" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/reset_settting_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

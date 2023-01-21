@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#4D8FB365"
+    android:background="#808FB365"
     android:gravity="center"
     android:orientation="vertical"
     android:paddingStart="6dp"
@@ -15,20 +15,22 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
             android:layout_weight="0"
-            android:text="@string/package_name" />
+            android:text="@string/package_name"
+            android:textColor="@color/material_orange_800" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/package_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLines="1"
-            android:text="@string/no_info" />
+            android:text="@string/no_info"
+            android:textColor="@color/material_orange_800" />
     </LinearLayout>
 
     <LinearLayout
@@ -36,20 +38,22 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
             android:layout_weight="0"
-            android:text="@string/activity" />
+            android:text="@string/activity"
+            android:textColor="@color/material_orange_800" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/operation_activity_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLines="1"
-            android:text="@string/no_info" />
+            android:text="@string/no_info"
+            android:textColor="@color/material_orange_800" />
     </LinearLayout>
 
     <LinearLayout
@@ -57,20 +61,22 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
             android:layout_weight="0"
-            android:text="@string/widget" />
+            android:text="@string/widget"
+            android:textColor="@color/material_orange_800" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/widget_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLines="2"
-            android:text="@string/no_info" />
+            android:text="@string/no_info"
+            android:textColor="@color/material_orange_800" />
     </LinearLayout>
 
     <LinearLayout
@@ -78,20 +84,22 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
             android:layout_weight="0"
-            android:text="@string/coordination" />
+            android:text="@string/coordination"
+            android:textColor="@color/material_orange_800" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/coordinate_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:maxLines="1"
-            android:text="@string/no_info" />
+            android:text="@string/no_info"
+            android:textColor="@color/material_orange_800" />
     </LinearLayout>
 
     <LinearLayout
@@ -107,6 +115,7 @@
             android:layout_marginEnd="5dp"
             android:layout_weight="1"
             android:text="@string/show_layout"
+            android:textColor="#004D40"
             android:textSize="14sp" />
 
         <Button
@@ -117,6 +126,7 @@
             android:layout_marginEnd="5dp"
             android:layout_weight="1"
             android:enabled="false"
+            android:textColor="#004D40"
             android:text="@string/add_widget" />
 
         <Button
@@ -126,7 +136,8 @@
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
             android:layout_weight="1"
-            android:text="@string/show_focus" />
+            android:text="@string/show_focus"
+            android:textColor="#004D40" />
 
         <Button
             android:id="@+id/add_coord"
@@ -136,6 +147,7 @@
             android:layout_marginEnd="5dp"
             android:layout_weight="1"
             android:enabled="false"
+            android:textColor="#004D40"
             android:text="@string/add_coordination" />
 
         <Button
@@ -145,6 +157,7 @@
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
             android:layout_weight="1"
-            android:text="@string/exit" />
+            android:text="@string/exit"
+            android:textColor="#004D40" />
     </LinearLayout>
 </LinearLayout>

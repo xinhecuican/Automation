@@ -4,6 +4,14 @@ apply plugin: 'com.android.library'
 
 version = '1.0.1'
 android {
+    signingConfigs {
+        release {
+            storeFile file('C:\\usr\\projects\\Automation2\\ks.p12')
+            storePassword 'a2001426'
+            keyAlias 'key0'
+            keyPassword 'a2001426'
+        }
+    }
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
 

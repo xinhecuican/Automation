@@ -16,7 +16,6 @@ public class DelayModel extends Model implements Serializable, AccessService.Win
 
     public static final int DELAY_MODE_TIME = 0;
     public static final int DELAY_MODE_WINDOW_CHANGE = 1;
-    public static final int DELAY_MODE_TEXT = 2;
 
     public DelayModel(){
         super();
@@ -37,7 +36,7 @@ public class DelayModel extends Model implements Serializable, AccessService.Win
     }
 
     @Override
-    public void run() {
+    public void onRun() {
         Debug.info("delay model run", 0);
         switch (mode){
             case DELAY_MODE_TIME:break;
@@ -56,7 +55,7 @@ public class DelayModel extends Model implements Serializable, AccessService.Win
     }
 
     @Override
-    public void onWindowStateChange() {
+    public void onWindowStateChange(String activityName) {
         try {
             lock.lock();
             condition.signal();

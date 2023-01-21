@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityServiceInfo;
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.PixelFormat;
@@ -24,6 +25,9 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,9 +37,12 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ScheduledFuture;
 
+import tech.xinhecuican.automation.adapter.ActivityNameAdapter;
+import tech.xinhecuican.automation.listener.TaskErrorListener;
 import tech.xinhecuican.automation.model.CoordinateDescription;
 import tech.xinhecuican.automation.model.Operation;
 import tech.xinhecuican.automation.model.Storage;
@@ -44,7 +51,7 @@ import tech.xinhecuican.automation.utils.Debug;
 import tech.xinhecuican.automation.utils.DelayScheduler;
 import tech.xinhecuican.automation.utils.Utils;
 
-public class AccessService extends android.accessibilityservice.AccessibilityService {
+public class AccessService extends android.accessibilityservice.AccessibilityService implements TaskErrorListener {
     private WidgetDescription saveWidgetDescription;
     private CoordinateDescription saveCoordinateDescription;
     private String currentPackageName, currentClassName;
@@ -52,6 +59,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
     private Set<String> IMEApp;
     private static AccessService _instance;
     private boolean isShowDialog;
+    private boolean isShowActivityName;
     private Operation currentOperation;
     private PackageManager packageManager;
     private Set<String> packages;
@@ -60,6 +68,8 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
     private List<ScheduledFuture> futures;
     private LinkedBlockingDeque<WindowStateChangeListener> windowStateChangeLisnters;
     public Field reflectSourceNodeId;
+    public List<String> activityRecorder;
+    private ActivityNameAdapter adapter;
 
     public static AccessService getInstance(){
         return _instance;
@@ -71,6 +81,8 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
         DelayQueue<Delayed> delay = new DelayQueue<>();
         scheduler = new DelayScheduler(1);
         IMEApp = new HashSet<>();
+        activityRecorder = new ArrayList<>();
+        isShowActivityName = false;
         List<InputMethodInfo> inputMethodInfoList = ((InputMethodManager)
                 getSystemService(android.accessibilityservice.AccessibilityService.INPUT_METHOD_SERVICE)).getInputMethodList();
         for (InputMethodInfo e : inputMethodInfoList) {
@@ -80,17 +92,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
         currentPackageName = "";
         currentClassName = "";
         isShowDialog = false;
-        windowStateChangeLisnters = new LinkedBlockingDeque<WindowStateChangeListener>();
-//        OperationManager.instance().addListener(new OperationListenerAdapter() {
-//            @Override
-//            public void onPackageChange(String[] packages) {
-//                AccessibilityServiceInfo info = getServiceInfo();
-//                info.packageNames = packages;
-//                setServiceInfo(info);
-//                currentClassName = "";
-//                currentPackageName = "";
-//            }
-//        });
+        windowStateChangeLisnters = new LinkedBlockingDeque<>();
 
         packages = new HashSet<>();
         packageManager = getPackageManager();
@@ -101,6 +103,11 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
                 packages.add(e.activityInfo.packageName);
             }
         }
+        List<PackageInfo> packageInfos = packageManager.getInstalledPackages(0);
+        for(PackageInfo info : packageInfos){
+            packages.add(info.packageName);
+        }
+
         totalPackageNames = packages.toArray(new String[0]);
 
         AccessibilityServiceInfo info = getServiceInfo();
@@ -142,28 +149,32 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
             {
                 case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
                     Debug.info("state " + packageName + " " + className, 0);
+                    if(isShowActivityName){
+                        activityRecorder.add(className);
+                        adapter.notifyItemChanged(activityRecorder.size()-1);
+                    }
                     if(windowStateChangeLisnters.size() != 0){
                         WindowStateChangeListener listener = windowStateChangeLisnters.poll();
                         if(listener != null)
-                            listener.onWindowStateChange();
+                            listener.onWindowStateChange(className);
                     }
                     boolean isActivity = !className.startsWith("android.") && !className.startsWith("androidx.");
                     if(!currentPackageName.equals(packageName)){
                         if(isActivity) {
                             currentPackageName = packageName;
                             currentClassName = className;
-                            currentOperation = Storage.instance().findOperationByActivity(currentClassName);
-                            if(currentOperation != null && currentOperation.isAuto())
-                                startProcess();
+                            if(currentOperation != null && currentOperation.isOnePage())
+                                stopProcess();
+                            judgeStartProcess();
                         }
                     }
                     else{
                         if(isActivity){
                             if(!currentClassName.equals(className)){
                                 currentClassName = className;
-                                currentOperation = Storage.instance().findOperationByActivity(currentClassName);
-                                if(currentOperation != null && currentOperation.isAuto())
-                                    startProcess();
+                                if(currentOperation != null && currentOperation.isOnePage())
+                                    stopProcess();
+                                judgeStartProcess();
                             }
                         }
                     }
@@ -175,6 +186,19 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
             Debug.error(e.getMessage(), 0);
             e.printStackTrace();
         }
+    }
+
+    private void judgeStartProcess(){
+        if(Storage.instance().isChooseActivity() &&
+                currentClassName.equals(Storage.instance().getChoosedOperation().getActivityName())){
+            Storage.instance().setChooseActivity(false);
+            currentOperation = Storage.instance().getChoosedOperation();
+        }
+        else{
+            currentOperation = Storage.instance().findOperationByActivity(currentClassName);
+        }
+        if(currentOperation != null && currentOperation.isAuto())
+            startProcess();
     }
 
     @Override
@@ -198,7 +222,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
         if(scheduler.isShutdown())
             scheduler = new DelayScheduler(0);
         try {
-            futures.removeIf(future -> future.isDone() || future.isCancelled());
+            futures.removeIf(Future::isDone);
             if (currentOperation != null && futures.size() == 0) {
                 futures.addAll(currentOperation.startProcess(_instance, scheduler));
             }
@@ -212,7 +236,6 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
         for(ScheduledFuture future : futures){
             future.cancel(true);
         }
-        futures.clear();
     }
 
     private void findAllNode(List<AccessibilityNodeInfo> roots, List<AccessibilityNodeInfo> list, String indent) {
@@ -301,30 +324,85 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
             windowManager.removeViewImmediate(suspendView);
     }
 
+    public void showActivityNameDialog(WindowInfoResultListener listener){
+        if(isShowActivityName)
+            return;
+        final WindowManager windowManager = (WindowManager) getSystemService(android.accessibilityservice.AccessibilityService.WINDOW_SERVICE);
+        final DisplayMetrics metrics = new DisplayMetrics();
+        windowManager.getDefaultDisplay().getRealMetrics(metrics);
+
+        boolean b = metrics.heightPixels > metrics.widthPixels;
+        final int width = b ? metrics.widthPixels : metrics.heightPixels;
+        final int height = b ? metrics.heightPixels : metrics.widthPixels;
+
+        final LayoutInflater inflater = LayoutInflater.from(this);
+        final View viewCustomization = inflater.inflate(R.layout.get_window_state_change, null);
+
+        final WindowManager.LayoutParams customizationParams, outlineParams, targetParams;
+        customizationParams = new WindowManager.LayoutParams();
+        customizationParams.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+        customizationParams.format = PixelFormat.TRANSPARENT;
+        customizationParams.gravity = Gravity.START | Gravity.TOP;
+        customizationParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+        customizationParams.width = width;
+        customizationParams.height = height / 5;
+        customizationParams.x = (metrics.widthPixels - customizationParams.width) / 2;
+        customizationParams.y = metrics.heightPixels - customizationParams.height;
+        customizationParams.alpha = 0.8f;
+
+        CoordinateDescription coordinateDescription = new CoordinateDescription();
+        WidgetDescription widgetDescription = new WidgetDescription();
+
+        viewCustomization.setOnTouchListener(new View.OnTouchListener() {
+            int x = 0, y = 0;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        x = Math.round(event.getRawX());
+                        y = Math.round(event.getRawY());
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        customizationParams.x = Math.round(customizationParams.x + (event.getRawX() - x));
+                        customizationParams.y = Math.round(customizationParams.y + (event.getRawY() - y));
+                        x = Math.round(event.getRawX());
+                        y = Math.round(event.getRawY());
+                        windowManager.updateViewLayout(viewCustomization, customizationParams);
+                        break;
+                }
+                return true;
+            }
+        });
+
+        RecyclerView recyclerView = (RecyclerView) viewCustomization.findViewById(R.id.activity_name_list);
+        activityRecorder.clear();
+        adapter = new ActivityNameAdapter(activityRecorder){
+            @Override
+            public void onItemClick(View view, int position) {
+                super.onItemClick(view, position);
+                saveWidgetDescription.className = activityRecorder.get(position);
+            }
+        };
+        recyclerView.setLayoutManager(new LinearLayoutManager(inflater.getContext(), RecyclerView.VERTICAL, true));
+        recyclerView.setAdapter(adapter);
+        Button exitButton = (Button)viewCustomization.findViewById(R.id.exit_button);
+        exitButton.setOnClickListener(v->{
+            listener.onCoordResult(saveCoordinateDescription);
+            listener.onWidgetResult(saveWidgetDescription);
+            windowManager.removeViewImmediate(viewCustomization);
+
+            isShowActivityName = false;
+        });
+        windowManager.addView(viewCustomization, customizationParams);
+        isShowActivityName = true;
+    }
+
     @SuppressLint("ClickableViewAccessibility")
-    public void showActivityCustomizationDialog(boolean isOnlyScroll, WindowInfoResultListener listener) {
+    public void showActivityCustomizationDialog(boolean isOnlyScroll, boolean isWindowInfo, WindowInfoResultListener listener) {
         if(isShowDialog)
             return;
 
-//        // 暂时允许接受所有包
-//        AccessibilityServiceInfo info = getServiceInfo();
-//        info.packageNames = packages.toArray(new String[0]);
-//        setServiceInfo(info);
-//        AccessibilityNodeInfo activeNode = getRootInActiveWindow();
-//        currentPackageName = activeNode.getPackageName() != null ? activeNode.getPackageName().toString() : "";
-//        CharSequence cClass = activeNode.getClassName();
-//        if(cClass != null){
-//            String rootClassName = cClass.toString();
-//            if(!rootClassName.startsWith("android.") && !rootClassName.startsWith("androidx.")){
-//                currentClassName = rootClassName;
-//            }
-//            else{
-//                currentClassName = "";
-//            }
-//        }
-//        else{
-//            currentClassName = "";
-//        }
         // show activity customization window
         final WindowManager windowManager = (WindowManager) getSystemService(android.accessibilityservice.AccessibilityService.WINDOW_SERVICE);
         final DisplayMetrics metrics = new DisplayMetrics();
@@ -459,6 +537,8 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
             }
         });
 
+        if(isWindowInfo)
+            showLayoutButton.setEnabled(false);
         showLayoutButton.setOnClickListener(v -> {
             Button button = (Button) v;
             if (outlineParams.alpha == 0) {
@@ -541,6 +621,9 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
                 button.setText(R.string.show_layout);
             }
         });
+
+        if(isWindowInfo)
+            focusButton.setEnabled(false);
         focusButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -563,12 +646,24 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
                 }
             }
         });
+        if(isWindowInfo) {
+            addWidgetButton.setText(R.string.add_window_info);
+            addWidgetButton.setEnabled(true);
+        }
         addWidgetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 saveWidgetDescription = new WidgetDescription(widgetDescription);
-                addWidgetButton.setEnabled(false);
-                packageNameView.setText(widgetDescription.packageName.concat(" (以下控件数据已保存)"));
+                if(isWindowInfo){
+                    saveWidgetDescription.packageName = currentPackageName;
+                    saveWidgetDescription.activityName = currentClassName;
+                    packageNameView.setText(saveWidgetDescription.packageName.concat(" (以下控件数据已保存)"));
+                    activityNameView.setText(saveWidgetDescription.activityName);
+                }
+                else {
+                    addWidgetButton.setEnabled(false);
+                    packageNameView.setText(widgetDescription.packageName.concat(" (以下控件数据已保存)"));
+                }
             }
         });
         addCoordButton.setOnClickListener(new View.OnClickListener() {
@@ -606,6 +701,11 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
         windowStateChangeLisnters.offer(listener);
     }
 
+    @Override
+    public void onError() {
+        stopProcess();
+    }
+
     public interface WindowInfoResultListener{
         void onWidgetResult(WidgetDescription description);
         void onCoordResult(CoordinateDescription description);
@@ -619,7 +719,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
      * 只会触发一次，之后该listener便会被移出队列
      */
     public interface WindowStateChangeListener {
-        void onWindowStateChange();
+        void onWindowStateChange(String activityName);
     }
 
     public class AccessibilityBinder extends Binder {
