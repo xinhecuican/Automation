@@ -210,6 +210,7 @@ public class OperationActivity extends AppCompatActivity {
                         Model current = (Model) draggingNode.getValue();
                         parent.removeModel(current);
                         group.addModel(current);
+                        isChange = true;
                     }
                     else if(hittingNode.getValue() instanceof ConditionModel){
                         ConditionModel conditionModel = (ConditionModel)hittingNode.getValue();
@@ -223,6 +224,7 @@ public class OperationActivity extends AppCompatActivity {
                                 ConditionModel parent = (ConditionModel) draggingNode.getParentNode().getValue();
                                 parent.removeModel((Model) draggingNode.getValue());
                             }
+                            isChange = true;
                         }
                     }
                     else
@@ -235,12 +237,13 @@ public class OperationActivity extends AppCompatActivity {
             public void onDragMoveIndexChange(@Nullable NodeModel<?> draggingNode, int from, int to) {
                 if(draggingNode.getParentNode().getValue() instanceof ModelGroup) {
                     operation.moveModel((ModelGroup) draggingNode.getParentNode().getValue(), from, to);
+                    isChange = true;
                 }
                 if(draggingNode.getParentNode().getValue() instanceof ConditionModel){
                     ConditionModel conditionModel = (ConditionModel) draggingNode.getParentNode().getValue();
                     conditionModel.exchangeModel();
+                    isChange = true;
                 }
-                isChange = true;
             }
         });
 
@@ -372,12 +375,30 @@ public class OperationActivity extends AppCompatActivity {
     }
 
     private void buildTreeModel(TreeModel<Model> tree, NodeModel<Model> rootNode){
-        for(Model childModel : ((ModelGroup)rootNode.getValue()).getModels()){
-            if(childModel.getModelType() == 2){
-                buildTreeModel(tree, new NodeModel<Model>(childModel));
-            }else{
-                tree.addNode(rootNode, new NodeModel<Model>(childModel));
+        Model model = rootNode.getValue();
+        if(model.getModelType() == 2) {
+            for (Model childModel : ((ModelGroup) rootNode.getValue()).getModels()) {
+                buildNodeModel(tree, rootNode, childModel);
             }
+        }
+        else if(model.getModelType() == 4){
+            ConditionModel conditionModel = (ConditionModel) model;
+            if(conditionModel.getSuccessModel() != null){
+                buildNodeModel(tree, rootNode, conditionModel.getSuccessModel());
+            }
+            if(conditionModel.getFailModel() != null){
+                buildNodeModel(tree, rootNode, conditionModel.getFailModel());
+            }
+        }
+    }
+
+    private void buildNodeModel(TreeModel<Model> tree, NodeModel<Model> rootNode, Model model){
+        if (model.getModelType() == 2 || model.getModelType() == 4) {
+            NodeModel<Model> nodeModel = new NodeModel<Model>(model);
+            tree.addNode(rootNode, nodeModel);
+            buildTreeModel(tree, nodeModel);
+        } else {
+            tree.addNode(rootNode, new NodeModel<Model>(model));
         }
     }
 

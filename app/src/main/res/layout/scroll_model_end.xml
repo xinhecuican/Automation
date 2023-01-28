@@ -39,42 +39,10 @@
             android:text="@string/scroll_widget_cond" />
     </RadioGroup>
 
-    <LinearLayout
+    <include
+        layout="@layout/widget_selector"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="10dp"
-            android:layout_weight="0"
-            android:gravity="center_vertical"
-            android:text="@string/widget"
-            android:textSize="24sp" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/widget_info"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:maxWidth="100dp"
-            android:maxLines="3"
-            android:text="TextView" />
-
-        <ImageButton
-            android:id="@+id/widget_picker"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:background="#FFFFFF"
-            android:contentDescription="@string/button_more"
-            android:minWidth="48dp"
-            android:minHeight="48dp"
-            app:srcCompat="@drawable/picker" />
-
-    </LinearLayout>
+        android:layout_height="wrap_content" />
 
     <LinearLayout
         android:layout_width="match_parent"

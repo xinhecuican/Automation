@@ -10,30 +10,10 @@
     tools:visibility="visible">
 
 
-    <RadioGroup
-        android:id="@+id/trigger_group"
+    <include
+        layout="@layout/click_model_group"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/radio0"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/widget_trigger" />
-
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/radio1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/coord_trigger" />
-
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/radio2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/text_trigger" />
-    </RadioGroup>
+        android:layout_height="wrap_content" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -58,52 +38,9 @@
             android:minHeight="48dp" />
     </LinearLayout>
 
-    <LinearLayout
+    <include
+        layout="@layout/model_delay_repeat"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/textView4"
-            android:layout_width="60dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0"
-            android:gravity="center"
-            android:text="@string/repeat_times" />
-
-        <EditText
-            android:inputType="numberDecimal"
-            android:id="@+id/click_model_repeat"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="@string/scroll_time"
-
-            android:minHeight="48dp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal">
-
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="60dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0"
-            android:gravity="center"
-            android:text="@string/delay" />
-
-        <EditText
-            android:inputType="numberDecimal"
-            android:id="@+id/model_delay"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="@string/scroll_time"
-
-            android:minHeight="48dp" />
-    </LinearLayout>
 </LinearLayout>

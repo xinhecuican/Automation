@@ -29,7 +29,6 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import tech.xinhecuican.automation.AccessService;
 import tech.xinhecuican.automation.model.WidgetDescription;
@@ -171,12 +170,13 @@ public class Utils {
                 if(idEqual && classEqual && textEqual) {
                     return node;
                 }
-            }
 
-            for(int i = 0; i< Objects.requireNonNull(node).getChildCount(); i++){
-                AccessibilityNodeInfo childNode = node.getChild(i);
-                if(childNode != null)
-                    nodes.add(childNode);
+                for(int i = 0; i< node.getChildCount(); i++){
+                    AccessibilityNodeInfo childNode = node.getChild(i);
+                    if(childNode != null)
+                        nodes.add(childNode);
+                }
+                node.recycle();
             }
         }
         Debug.info("can't find widget", 1);
@@ -198,11 +198,13 @@ public class Utils {
                     if(nodeText.contains(text))
                         return node;
                 }
-            }
-            for(int i = 0; i< Objects.requireNonNull(node).getChildCount(); i++){
-                AccessibilityNodeInfo childNode = node.getChild(i);
-                if(childNode != null)
-                    nodes.add(childNode);
+
+                for(int i = 0; i< node.getChildCount(); i++){
+                    AccessibilityNodeInfo childNode = node.getChild(i);
+                    if(childNode != null)
+                        nodes.add(childNode);
+                }
+                node.recycle();
             }
         }
         Debug.info("can't find widget", 1);

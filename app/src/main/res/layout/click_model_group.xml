@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/trigger_group"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <com.google.android.material.radiobutton.MaterialRadioButton
+        android:id="@+id/radio0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/widget_trigger" />
+
+    <com.google.android.material.radiobutton.MaterialRadioButton
+        android:id="@+id/radio1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/coord_trigger" />
+
+    <com.google.android.material.radiobutton.MaterialRadioButton
+        android:id="@+id/radio2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/text_trigger" />
+
+    <com.google.android.material.radiobutton.MaterialRadioButton
+        android:id="@+id/radio3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/back_trigger" />
+
+</RadioGroup>

@@ -83,6 +83,14 @@ public class MainFragment extends Fragment {
             powerView.setImageResource(R.drawable.close);
         }
 
+        ImageButton helpButton = (ImageButton)view.findViewById(R.id.help_button);
+        helpButton.setOnClickListener(v->{
+            Intent intent = new Intent();
+            intent.setData(Uri.parse("https://xinhecuican.tech/post/4214ef28.html#%E6%93%8D%E4%BD%9C%E7%BB%84"));//Url 就是你要打开的网址
+            intent.setAction(Intent.ACTION_VIEW);
+            this.startActivity(intent); //启动浏览器
+        });
+
         Switch switchMain = (Switch) view.findViewById(R.id.switch_open);
         switchMain.setChecked(Storage.instance().isOpen());
         switchMain.setOnCheckedChangeListener((buttonView, isChecked) -> {

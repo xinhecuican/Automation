@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/model_setting"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:visibility="visible"
-    tools:visibility="visible">
-
+    android:visibility="visible">
 
     <include
         layout="@layout/click_model_group"
@@ -16,13 +13,7 @@
         android:layout_height="wrap_content" />
 
     <include
-        layout="@layout/widget_selector"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <include
         layout="@layout/model_delay_repeat"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
-
 </LinearLayout>

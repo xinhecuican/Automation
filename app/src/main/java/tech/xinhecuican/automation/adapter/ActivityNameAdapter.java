@@ -6,6 +6,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.List;
+import java.util.Map;
 
 import tech.xinhecuican.automation.AccessService;
 import tech.xinhecuican.automation.R;
@@ -13,9 +14,11 @@ import tech.xinhecuican.automation.R;
 public class ActivityNameAdapter extends RecyclerAdapter<AccessService.ActivityInfo>{
     private int selectPostion;
     private LinearLayout selectView;
+    private Map<String, String> nameMap;
 
-    public ActivityNameAdapter(List<AccessService.ActivityInfo> datas) {
+    public ActivityNameAdapter(Map<String, String> nameMap, List<AccessService.ActivityInfo> datas) {
         super(datas);
+        this.nameMap = nameMap;
         selectPostion = -1;
     }
 
@@ -29,7 +32,7 @@ public class ActivityNameAdapter extends RecyclerAdapter<AccessService.ActivityI
         TextView packageNameView = (TextView)holder.getRootView().findViewById(R.id.package_name);
         int index = -1;
         if((index = data.packageName.lastIndexOf('.')) != -1){
-            packageNameView.setText(data.packageName.substring(index+1));
+            packageNameView.setText(nameMap.containsKey(data.packageName) ? nameMap.get(data.packageName) : data.packageName.substring(index+1));
         }
         else{
             packageNameView.setText(data.packageName);

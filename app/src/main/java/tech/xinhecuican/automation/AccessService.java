@@ -3,7 +3,10 @@ package tech.xinhecuican.automation;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.annotation.SuppressLint;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -31,8 +34,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.DelayQueue;
@@ -63,6 +68,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
     private Operation currentOperation;
     private PackageManager packageManager;
     private Set<String> packages;
+    private Map<String, String> packageNameMap;
     private String[] totalPackageNames;
     private View suspendView;
     private List<ScheduledFuture> futures;
@@ -102,26 +108,9 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
         currentClassName = "";
         isShowDialog = false;
         windowStateChangeLisnters = new LinkedBlockingDeque<>();
-
-        packages = new HashSet<>();
         packageManager = getPackageManager();
-        Intent intent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
-        List<ResolveInfo> ResolveInfoList = packageManager.queryIntentActivities(intent, PackageManager.MATCH_ALL);
-        if(ResolveInfoList != null) {
-            for (ResolveInfo e : ResolveInfoList) {
-                packages.add(e.activityInfo.packageName);
-            }
-        }
-        List<PackageInfo> packageInfos = packageManager.getInstalledPackages(0);
-        for(PackageInfo info : packageInfos){
-            packages.add(info.packageName);
-        }
+        setPackageNames();
 
-        totalPackageNames = packages.toArray(new String[0]);
-
-        AccessibilityServiceInfo info = getServiceInfo();
-        info.packageNames = totalPackageNames;
-        setServiceInfo(info);
         Field fields[] = AccessibilityNodeInfo.class.getDeclaredFields();
         for(Field field : AccessibilityNodeInfo.class.getDeclaredFields()){
             if(field.getName().equals("mSourceNodeId")){
@@ -135,6 +124,51 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
                 break;
             }
         }
+
+        registerService();
+    }
+
+    private void setPackageNames(){
+        packages = new HashSet<>();
+        packageNameMap = new HashMap<>();
+        Intent intent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+        List<ResolveInfo> ResolveInfoList = packageManager.queryIntentActivities(intent, PackageManager.MATCH_ALL);
+        if(ResolveInfoList != null) {
+            for (ResolveInfo e : ResolveInfoList) {
+                CharSequence cPackageLabel = e.loadLabel(packageManager);
+                if(cPackageLabel != null){
+                    packageNameMap.put(e.activityInfo.packageName, cPackageLabel.toString());
+                }
+                packages.add(e.activityInfo.packageName);
+            }
+        }
+        List<PackageInfo> packageInfos = packageManager.getInstalledPackages(0);
+        for(PackageInfo info : packageInfos){
+            packages.add(info.packageName);
+        }
+        totalPackageNames = packages.toArray(new String[0]);
+        AccessibilityServiceInfo info = getServiceInfo();
+        info.packageNames = totalPackageNames;
+        setServiceInfo(info);
+    }
+
+    private void registerService(){
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                judgeStartProcess();
+            }
+        }, new IntentFilter(Intent.ACTION_USER_PRESENT)); //屏幕解锁
+
+        IntentFilter actions = new IntentFilter();
+        actions.addAction(Intent.ACTION_PACKAGE_ADDED);
+        actions.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                setPackageNames();
+            }
+        }, actions);
     }
 
     @Override
@@ -165,7 +199,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
                     if(windowStateChangeLisnters.size() != 0){
                         WindowStateChangeListener listener = windowStateChangeLisnters.poll();
                         if(listener != null)
-                            listener.onWindowStateChange(className);
+                            listener.onWindowStateChange(Utils.showActivityName(currentPackageName, currentClassName));
                     }
 //                    boolean isActivity = !className.startsWith("android.") && !className.startsWith("androidx.");
                     if(!currentPackageName.equals(packageName)){
@@ -386,7 +420,7 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
 
         RecyclerView recyclerView = (RecyclerView) viewCustomization.findViewById(R.id.activity_name_list);
         activityRecorder.clear();
-        adapter = new ActivityNameAdapter(activityRecorder){
+        adapter = new ActivityNameAdapter(packageNameMap, activityRecorder){
             @Override
             public void onItemClick(View view, int position) {
                 super.onItemClick(view, position);
@@ -709,6 +743,10 @@ public class AccessService extends android.accessibilityservice.AccessibilitySer
 
     public void addWindowStateChangeListener(WindowStateChangeListener listener){
         windowStateChangeLisnters.offer(listener);
+    }
+
+    public void removeWindowStateChangeListener(WindowStateChangeListener listener){
+        windowStateChangeLisnters.remove(listener);
     }
 
     @Override

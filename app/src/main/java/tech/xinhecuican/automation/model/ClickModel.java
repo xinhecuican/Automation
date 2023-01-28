@@ -1,5 +1,6 @@
 package tech.xinhecuican.automation.model;
 
+import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
 import android.graphics.Path;
 import android.graphics.Rect;
@@ -22,6 +23,7 @@ public class ClickModel extends Model implements Serializable {
     public static final int CLICK_MODE_WIDGET = 0;
     public static final int CLICK_MODE_POSITION = 1;
     public static final int CLICK_MODE_TEXT = 2;
+    public static final int CLICK_MODE_BACK = 3;
 
     public ClickModel(){
         super();
@@ -90,26 +92,32 @@ public class ClickModel extends Model implements Serializable {
     @Override
     public void onRun() {
         Debug.info("click run " + String.valueOf(Thread.currentThread().getId()), 0);
-        if(mode == CLICK_MODE_WIDGET){
-            AccessibilityNodeInfo node = Utils.findWidgetByDescription(service, widgetDescription);
-            if(node != null){
-                boolean clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                if(!clicked){
+        switch (mode){
+            case CLICK_MODE_WIDGET:{
+                AccessibilityNodeInfo node = Utils.findWidgetByDescription(service, widgetDescription);
+                if(node != null){
+                    boolean clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    if(!clicked){
+                        Rect rect = new Rect();
+                        node.getBoundsInScreen(rect);
+                        click(rect.centerX(), rect.centerY());
+                    }
+                }
+                break;
+            }
+            case CLICK_MODE_POSITION: click(this.x, this.y);break;
+            case CLICK_MODE_TEXT:{
+                AccessibilityNodeInfo node = Utils.findWidgetByText(service, text);
+                if(node != null) {
                     Rect rect = new Rect();
                     node.getBoundsInScreen(rect);
                     click(rect.centerX(), rect.centerY());
                 }
+                break;
             }
-        }
-        else if(mode == CLICK_MODE_POSITION){
-            click(this.x, this.y);
-        }
-        else if(mode == CLICK_MODE_TEXT){
-            AccessibilityNodeInfo node = Utils.findWidgetByText(service, text);
-            if(node != null) {
-                Rect rect = new Rect();
-                node.getBoundsInScreen(rect);
-                click(rect.centerX(), rect.centerY());
+            case CLICK_MODE_BACK:{
+                service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
+                break;
             }
         }
     }

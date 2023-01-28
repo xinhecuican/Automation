@@ -3,11 +3,14 @@ package tech.xinhecuican.automation.model;
 import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import tech.xinhecuican.automation.AccessService;
+import tech.xinhecuican.automation.utils.Debug;
+import tech.xinhecuican.automation.utils.Utils;
 
 public class ConditionModel extends Model implements Serializable, AccessService.WindowStateChangeListener {
     private static final long serialVersionUID = -4256965041760720843L;
@@ -111,10 +114,11 @@ public class ConditionModel extends Model implements Serializable, AccessService
 
     @Override
     public void onRun() {
+        Debug.info("condition model run", 0);
         try {
             lock.lockInterruptibly();
             isSolved = false;
-            lockCondition.await();
+            lockCondition.await(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -125,18 +129,21 @@ public class ConditionModel extends Model implements Serializable, AccessService
                     for(ScheduledFuture future : successFutures){
                         future.cancel(true);
                     }
+                    successFutures = null;
                 }
+                service.removeWindowStateChangeListener(this);
             }
         }
     }
 
     @Override
     public void onWindowStateChange(String activityName) {
-        if(activityName.equals(widgetDescription.className)){
+        if(activityName.equals(Utils.showActivityName(widgetDescription.packageName, widgetDescription.activityName))){
             if(failFutures != null){
                 for(ScheduledFuture future : failFutures){
                     future.cancel(true);
                 }
+                failFutures = null;
             }
         }
         else{
@@ -144,6 +151,7 @@ public class ConditionModel extends Model implements Serializable, AccessService
                 for(ScheduledFuture future : successFutures){
                     future.cancel(true);
                 }
+                successFutures = null;
             }
         }
         try{

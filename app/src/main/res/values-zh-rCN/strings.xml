@@ -77,4 +77,6 @@
     <string name="add_window_info">添加窗体信息</string>
     <string name="wait_time">等待时间</string>
     <string name="new_condition_model">新建条件模型</string>
+    <string name="help">帮助</string>
+    <string name="back_trigger">点击返回键</string>
 </resources>

@@ -166,6 +166,9 @@ public class TreeModelAdapter extends TreeViewBaseAdapter<Model>{
                         case ClickModel.CLICK_MODE_TEXT:
                             detailLayout.addView(inflater.inflate(R.layout.click_model_text, null));
                             break;
+                        case ClickModel.CLICK_MODE_BACK:
+                            detailLayout.addView(inflater.inflate(R.layout.click_model_back, null));
+                            break;
                     }
                     RadioGroup triggerGroup = view.findViewById(R.id.trigger_group);
                     switch(clickModel.getMode()){
@@ -209,6 +212,10 @@ public class TreeModelAdapter extends TreeViewBaseAdapter<Model>{
                             triggerGroup.check(R.id.radio2);
                             break;
                         }
+                        case ClickModel.CLICK_MODE_BACK:{
+                            triggerGroup.check(R.id.radio3);
+                            break;
+                        }
                     }
 
                     triggerGroup.setOnCheckedChangeListener((group, checkedId) -> {
@@ -217,12 +224,13 @@ public class TreeModelAdapter extends TreeViewBaseAdapter<Model>{
                             case R.id.radio0: clickModel.setMode(0);break;
                             case R.id.radio1: clickModel.setMode(1);break;
                             case R.id.radio2: clickModel.setMode(2);break;
+                            case R.id.radio3: clickModel.setMode(3);break;
                         }
                         TreeModelAdapter.this.notifyItemViewChange(holder.getNode());
                         isChange = true;
                     });
 
-                    EditText repeat_edit = (EditText) view.findViewById(R.id.click_model_repeat);
+                    EditText repeat_edit = (EditText) view.findViewById(R.id.model_repeat);
                     repeat_edit.setText(String.valueOf(clickModel.getRepeatTimes()));
                     repeat_edit.addTextChangedListener(new NumTextChangeListener(repeat_edit) {
                         @Override
@@ -401,7 +409,7 @@ public class TreeModelAdapter extends TreeViewBaseAdapter<Model>{
                     detailLayout.addView(inflater.inflate(R.layout.cond_model_widget, null));
                     setWidgetPicker(view, holder.getNode(), false, true);
                     TextView widgetInfo = (TextView)view.findViewById(R.id.widget_info);
-                    widgetInfo.setText(conditionModel.getWidgetDescription().className);
+                    widgetInfo.setText(Utils.showActivityName(conditionModel.getWidgetDescription().packageName, conditionModel.getWidgetDescription().activityName));
 
                     EditText timeoutEdit = (EditText) view.findViewById(R.id.wait_time_input);
                     timeoutEdit.setText(String.valueOf(conditionModel.getTimeout()));

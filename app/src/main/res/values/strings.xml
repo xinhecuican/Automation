@@ -86,4 +86,6 @@
     <string name="add_window_info">add window information</string>
     <string name="wait_time">wait time</string>
     <string name="new_condition_model">new condition model</string>
+    <string name="help">help</string>
+    <string name="back_trigger">back trigger</string>
 </resources>
