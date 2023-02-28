@@ -297,10 +297,12 @@ public class Storage implements Serializable {
 
     private void combine(Storage storage){
         if(storage.operations != null){
-            this.operations.addAll(storage.operations);
             for(Operation operation : storage.operations){
-                addActivity(operation);
-                addPackageName(operation);
+                if(operation != null){
+                    this.operations.add(operation);
+                    addActivity(operation);
+                    addPackageName(operation);
+                }
             }
         }
     }

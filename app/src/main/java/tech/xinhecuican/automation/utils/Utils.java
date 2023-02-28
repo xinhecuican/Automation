@@ -27,8 +27,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import tech.xinhecuican.automation.AccessService;
 import tech.xinhecuican.automation.model.WidgetDescription;
@@ -146,11 +146,10 @@ public class Utils {
     }
 
     public static AccessibilityNodeInfo findWidgetByDescription(AccessService service, WidgetDescription description){
-        List<AccessibilityNodeInfo> nodes = new ArrayList<>();
-        nodes.add(service.getRootInActiveWindow());
-        int index = 0;
+        Stack<AccessibilityNodeInfo> nodes = new Stack<>();
+        nodes.push(service.getRootInActiveWindow());
         while(!nodes.isEmpty()){
-            AccessibilityNodeInfo node = nodes.get(index++);
+            AccessibilityNodeInfo node = nodes.pop();
             if(node != null){
                 if(description.resourceId != -1){
                     long nodeId = Utils.getResourceId(node, service.reflectSourceNodeId);
@@ -170,11 +169,10 @@ public class Utils {
                 if(idEqual && classEqual && textEqual) {
                     return node;
                 }
-
                 for(int i = 0; i< node.getChildCount(); i++){
                     AccessibilityNodeInfo childNode = node.getChild(i);
                     if(childNode != null)
-                        nodes.add(childNode);
+                        nodes.push(childNode);
                 }
                 node.recycle();
             }
@@ -184,11 +182,34 @@ public class Utils {
     }
 
     public static AccessibilityNodeInfo findWidgetByText(AccessService service, String text){
-        List<AccessibilityNodeInfo> nodes = new ArrayList<>();
-        nodes.add(service.getRootInActiveWindow());
-        int index = 0;
+//        List<AccessibilityNodeInfo> nodes = new ArrayList<>();
+//        nodes.add(service.getRootInActiveWindow());
+//        int index = 0;
+//        while(index < nodes.size()){
+//            AccessibilityNodeInfo node = nodes.get(index++);
+//            if(node != null){
+//                CharSequence cText = node.getText();
+//                if(cText != null){
+//                    String nodeText = cText.toString();
+//                    if(nodeText.length() > 10)
+//                        nodeText = nodeText.substring(0, 9);
+//                    if(nodeText.contains(text))
+//                        return node;
+//                }
+//
+//                for(int i = 0; i< node.getChildCount(); i++){
+//                    AccessibilityNodeInfo childNode = node.getChild(i);
+//                    if(childNode != null)
+//                        nodes.add(childNode);
+//                }
+//                node.recycle();
+//            }
+//        }
+        // 深度比广度速度要快些
+        Stack<AccessibilityNodeInfo> nodes = new Stack<>();
+        nodes.push(service.getRootInActiveWindow());
         while(!nodes.isEmpty()){
-            AccessibilityNodeInfo node = nodes.get(index++);
+            AccessibilityNodeInfo node = nodes.pop();
             if(node != null){
                 CharSequence cText = node.getText();
                 if(cText != null){
@@ -202,7 +223,7 @@ public class Utils {
                 for(int i = 0; i< node.getChildCount(); i++){
                     AccessibilityNodeInfo childNode = node.getChild(i);
                     if(childNode != null)
-                        nodes.add(childNode);
+                        nodes.push(childNode);
                 }
                 node.recycle();
             }
